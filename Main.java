@@ -8,6 +8,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.nio.charset.StandardCharsets;
+import java.util.regex.Pattern;
 
 // Interface for all accounts - they are all taxable
 interface Taxable {
@@ -31,12 +32,8 @@ interface Transferable {
 
 public class Main {
     // Encryption key - in production, this should be stored securely and not
-    // hardcoded
     private static final String ENCRYPTION_KEY = "BankSystemSecretKey2024!";
-
     /**
-     * Encrypts a credit card number using AES encryption with CBC mode
-     * 
      * @param creditCardNumber The credit card number to encrypt
      * @return Base64 encoded encrypted string, or "Not set" if no card number
      */
@@ -79,10 +76,7 @@ public class Main {
             return maskCreditCard(creditCardNumber);
         }
     }
-
     /**
-     * Masks a credit card number for display purposes
-     * 
      * @param creditCardNumber The credit card number to mask
      * @return Masked credit card string
      */
@@ -97,15 +91,65 @@ public class Main {
         }
         return "****";
     }
+    
+    /**
+     * Validates and sanitizes user input to prevent injection attacks
+     * @param input The user input to validate
+     * @param pattern The regex pattern to validate against
+     * @return Sanitized input or null if invalid
+     */
+    private static String validateInput(String input, Pattern pattern) {
+        if (input == null || input.trim().isEmpty()) {
+            return null;
+        }
+        String sanitized = input.trim();
+        return pattern.matcher(sanitized).matches() ? sanitized : null;
+    }
+    
+    /**
+     * Validates numeric input to prevent injection attacks
+     * @param input The numeric input to validate
+     * @param min The minimum allowed value
+     * @param max The maximum allowed value
+     * @return Validated integer or -1 if invalid
+     */
+    private static int validateNumericInput(String input, int min, int max) {
+        try {
+            int value = Integer.parseInt(input.trim());
+            return (value >= min && value <= max) ? value : -1;
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
 
     public static void main(String[] args) {
         System.out.println("Hello from OOPs class!\n");
 
+        // Define input validation patterns
+        Pattern accountNumberPattern = Pattern.compile("^[A-Za-z0-9]{3,20}$");
+        Pattern namePattern = Pattern.compile("^[A-Za-z\\s]{2,50}$");
+        Pattern upiPattern = Pattern.compile("^[A-Za-z0-9._-]+@[A-Za-z0-9]+$");
+        Pattern yesNoPattern = Pattern.compile("^(y|yes|n|no)$");
+        
         Scanner scanner = new Scanner(System.in);
 
         // === File I/O ===
         String logPath = System.getProperty("user.dir") + File.separator + "logs.txt";
         File file = new File(logPath).getAbsoluteFile();
+        
+        // Ensure the file has proper permissions and is secure
+        if (!file.exists()) {
+            try {
+                file.createNewFile();
+                // Set file permissions to owner read/write only (600 equivalent)
+                file.setReadable(false, false); // No read for others
+                file.setWritable(false, false); // No write for others
+                file.setReadable(true, true);   // Owner can read
+                file.setWritable(true, true);   // Owner can write
+            } catch (IOException e) {
+                System.err.println("Error creating log file: " + e.getMessage());
+            }
+        }
 
         try (FileWriter fileWriter = new FileWriter(file, true);
                 BufferedWriter bufferedWriter = new BufferedWriter(fileWriter)) {
@@ -140,26 +184,46 @@ public class Main {
                     // Create Main Account
                     System.out.println("\n=== Creating Main Account ===");
                     System.out.print("Enter main account number: ");
-                    String accNo = scanner.nextLine();
+                    String accNo = validateInput(scanner.nextLine(), accountNumberPattern);
+                    if (accNo == null) {
+                        System.out.println("Invalid account number format. Please use 3-20 alphanumeric characters.");
+                        continue;
+                    }
 
                     System.out.print("Enter account holder name: ");
-                    String name = scanner.nextLine();
+                    String name = validateInput(scanner.nextLine(), namePattern);
+                    if (name == null) {
+                        System.out.println("Invalid name format. Please use 2-50 alphabetic characters.");
+                        continue;
+                    }
 
                     System.out.print("Enter initial balance: ");
                     int amount = scanner.nextInt();
                     scanner.nextLine(); // consume newline
 
                     System.out.print("Do you want to add UPI ID? (y/n): ");
-                    String addUpi = scanner.nextLine().toLowerCase();
+                    String addUpi = validateInput(scanner.nextLine().toLowerCase(), yesNoPattern);
+                    if (addUpi == null) {
+                        System.out.println("Invalid input. Please enter 'y', 'yes', 'n', or 'no'.");
+                        continue;
+                    }
 
                     String upiId = null;
                     if (addUpi.equals("y") || addUpi.equals("yes")) {
                         System.out.print("Enter UPI ID: ");
-                        upiId = scanner.nextLine();
+                        upiId = validateInput(scanner.nextLine(), upiPattern);
+                        if (upiId == null) {
+                            System.out.println("Invalid UPI ID format. Please use format: username@bank");
+                            continue;
+                        }
                     }
 
                     System.out.print("Do you want to add credit card? (y/n): ");
-                    String addCard = scanner.nextLine().toLowerCase();
+                    String addCard = validateInput(scanner.nextLine().toLowerCase(), yesNoPattern);
+                    if (addCard == null) {
+                        System.out.println("Invalid input. Please enter 'y', 'yes', 'n', or 'no'.");
+                        continue;
+                    }
 
                     int creditCard = -1;
                     if (addCard.equals("y") || addCard.equals("yes")) {
@@ -168,7 +232,7 @@ public class Main {
                         scanner.nextLine(); // consume newline
                     }
 
-                    // Create main account
+                    // Create main account with validated inputs
                     if (upiId != null && creditCard != -1) {
                         account = new MainAccount(accNo, name, amount, upiId, creditCard);
                     } else if (upiId != null) {
@@ -178,7 +242,7 @@ public class Main {
                     } else {
                         account = new MainAccount(accNo, name, amount);
                     }
-                    accountType = "Main";
+                    accountType = "Main"; // Main account type
 
                     // Log main account creation with encrypted credit card
                     String logEntry = String.format(
@@ -196,26 +260,46 @@ public class Main {
                 } else {
                     // Create Savings or Current Account (requires parent account)
                     System.out.print("Enter parent account number: ");
-                    String parentAccNo = scanner.nextLine();
+                    String parentAccNo = validateInput(scanner.nextLine(), accountNumberPattern);
+                    if (parentAccNo == null) {
+                        System.out.println("Invalid parent account number format. Please use 3-20 alphanumeric characters.");
+                        continue;
+                    }
 
                     System.out.print("Enter account holder name: ");
-                    String name = scanner.nextLine();
+                    String name = validateInput(scanner.nextLine(), namePattern);
+                    if (name == null) {
+                        System.out.println("Invalid name format. Please use 2-50 alphabetic characters.");
+                        continue;
+                    }
 
                     System.out.print("Enter initial balance: ");
                     int amount = scanner.nextInt();
                     scanner.nextLine(); // consume newline
 
                     System.out.print("Do you want to add UPI ID? (y/n): ");
-                    String addUpi = scanner.nextLine().toLowerCase();
+                    String addUpi = validateInput(scanner.nextLine().toLowerCase(), yesNoPattern);
+                    if (addUpi == null) {
+                        System.out.println("Invalid input. Please enter 'y', 'yes', 'n', or 'no'.");
+                        continue;
+                    }
 
                     String upiId = null;
                     if (addUpi.equals("y") || addUpi.equals("yes")) {
                         System.out.print("Enter UPI ID: ");
-                        upiId = scanner.nextLine();
+                        upiId = validateInput(scanner.nextLine(), upiPattern);
+                        if (upiId == null) {
+                            System.out.println("Invalid UPI ID format. Please use format: username@bank");
+                            continue;
+                        }
                     }
 
                     System.out.print("Do you want to add credit card? (y/n): ");
-                    String addCard = scanner.nextLine().toLowerCase();
+                    String addCard = validateInput(scanner.nextLine().toLowerCase(), yesNoPattern);
+                    if (addCard == null) {
+                        System.out.println("Invalid input. Please enter 'y', 'yes', 'n', or 'no'.");
+                        continue;
+                    }
 
                     int creditCard = -1;
                     if (addCard.equals("y") || addCard.equals("yes")) {
@@ -350,7 +434,11 @@ public class Main {
                                     break;
                                 case 2:
                                     System.out.print("Enter UPI ID: ");
-                                    String withdrawUpi = scanner.nextLine();
+                                    String withdrawUpi = validateInput(scanner.nextLine(), upiPattern);
+                                    if (withdrawUpi == null) {
+                                        System.out.println("Invalid UPI ID format. Please use format: username@bank");
+                                        continue;
+                                    }
                                     finalBalance = account.withdraw(withdrawUpi, withdrawAmount);
                                     withdrawMethod = "UPI";
                                     break;
@@ -388,7 +476,11 @@ public class Main {
                                 double taxAmount = taxableAccount.calculateTax();
                                 System.out.println("Tax amount: ₹" + taxAmount);
                                 System.out.print("Do you want to pay tax? (y/n): ");
-                                String payTax = scanner.nextLine().toLowerCase();
+                                String payTax = validateInput(scanner.nextLine().toLowerCase(), yesNoPattern);
+                                if (payTax == null) {
+                                    System.out.println("Invalid input. Please enter 'y', 'yes', 'n', or 'no'.");
+                                    continue;
+                                }
                                 if (payTax.equals("y") || payTax.equals("yes")) {
                                     taxableAccount.payTax();
                                     System.out.println("Tax paid successfully!");
@@ -411,7 +503,11 @@ public class Main {
                             if (account instanceof Transferable) {
                                 Transferable transferableAccount = (Transferable) account;
                                 System.out.print("Enter recipient account number: ");
-                                String recipientAccNo = scanner.nextLine();
+                                String recipientAccNo = validateInput(scanner.nextLine(), accountNumberPattern);
+                                if (recipientAccNo == null) {
+                                    System.out.println("Invalid recipient account number format. Please use 3-20 alphanumeric characters.");
+                                    continue;
+                                }
                                 System.out.print("Enter transfer amount: ");
                                 double transferAmount = scanner.nextDouble();
                                 scanner.nextLine();
@@ -459,7 +555,7 @@ public class Main {
 class MainAccount extends Account implements Taxable, Transferable {
     private String main_account_id;
     private final double taxRate = 0.15; // 15% tax rate
-    private final double transferLimit = 100000; // ₹1,00,000 transfer limit
+    private final double transferLimit = 1000000; // ₹10,00,000 transfer limit
 
     MainAccount(String acc_no, String name, int amount) {
         super(acc_no, name, amount);
