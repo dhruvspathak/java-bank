@@ -1,5 +1,13 @@
 import java.io.*;
 import java.util.Scanner;
+import java.util.Base64;
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
+import javax.crypto.spec.IvParameterSpec;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.nio.charset.StandardCharsets;
 
 // Interface for all accounts - they are all taxable
 interface Taxable {
@@ -22,6 +30,74 @@ interface Transferable {
 }
 
 public class Main {
+    // Encryption key - in production, this should be stored securely and not
+    // hardcoded
+    private static final String ENCRYPTION_KEY = "BankSystemSecretKey2024!";
+
+    /**
+     * Encrypts a credit card number using AES encryption with CBC mode
+     * 
+     * @param creditCardNumber The credit card number to encrypt
+     * @return Base64 encoded encrypted string, or "Not set" if no card number
+     */
+    private static String encryptCreditCard(int creditCardNumber) {
+        if (creditCardNumber == -1) {
+            return "Not set";
+        }
+
+        try {
+            // Create a secure key from the encryption key
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(ENCRYPTION_KEY.getBytes(StandardCharsets.UTF_8));
+            SecretKeySpec secretKey = new SecretKeySpec(hash, "AES");
+
+            // Generate a random initialization vector
+            SecureRandom random = new SecureRandom();
+            byte[] iv = new byte[16];
+            random.nextBytes(iv);
+            IvParameterSpec ivSpec = new IvParameterSpec(iv);
+
+            // Initialize cipher for encryption with CBC mode
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivSpec);
+
+            // Encrypt the credit card number
+            String cardNumberStr = String.valueOf(creditCardNumber);
+            byte[] encryptedBytes = cipher.doFinal(cardNumberStr.getBytes(StandardCharsets.UTF_8));
+
+            // Combine IV and encrypted data for storage
+            byte[] combined = new byte[iv.length + encryptedBytes.length];
+            System.arraycopy(iv, 0, combined, 0, iv.length);
+            System.arraycopy(encryptedBytes, 0, combined, iv.length, encryptedBytes.length);
+
+            // Return Base64 encoded encrypted string
+            return Base64.getEncoder().encodeToString(combined);
+
+        } catch (Exception e) {
+            // In case of encryption failure, return a masked version for security
+            System.err.println("Encryption failed: " + e.getMessage());
+            return maskCreditCard(creditCardNumber);
+        }
+    }
+
+    /**
+     * Masks a credit card number for display purposes
+     * 
+     * @param creditCardNumber The credit card number to mask
+     * @return Masked credit card string
+     */
+    public static String maskCreditCard(int creditCardNumber) {
+        if (creditCardNumber == -1) {
+            return "Not set";
+        }
+
+        String cardStr = String.valueOf(creditCardNumber);
+        if (cardStr.length() > 4) {
+            return "****" + cardStr.substring(cardStr.length() - 4);
+        }
+        return "****";
+    }
+
     public static void main(String[] args) {
         System.out.println("Hello from OOPs class!\n");
 
@@ -104,7 +180,7 @@ public class Main {
                     }
                     accountType = "Main";
 
-                    // Log main account creation
+                    // Log main account creation with encrypted credit card
                     String logEntry = String.format(
                             "[%s] %s Account created - ID: %s, Name: %s, Balance: ₹%d, UPI: %s, Card: %s\n",
                             java.time.LocalDateTime.now(),
@@ -113,7 +189,7 @@ public class Main {
                             account.getName(),
                             account.getAmount(),
                             upiId != null ? upiId : "Not set",
-                            creditCard != -1 ? String.valueOf(creditCard) : "Not set");
+                            encryptCreditCard(creditCard));
                     bufferedWriter.write(logEntry);
                     bufferedWriter.flush();
 
@@ -176,7 +252,7 @@ public class Main {
                         accountType = "Current";
                     }
 
-                    // Log child account creation
+                    // Log child account creation with encrypted credit card
                     String parentAccNoForLog = account.getAccountId().substring(3); // Remove SAV/CUR prefix
                     String logEntry = String.format(
                             "[%s] %s Account created - Parent: MAIN%s, ID: %s, Name: %s, Balance: ₹%d, UPI: %s, Card: %s\n",
@@ -187,7 +263,7 @@ public class Main {
                             account.getName(),
                             account.getAmount(),
                             upiId != null ? upiId : "Not set",
-                            creditCard != -1 ? String.valueOf(creditCard) : "Not set");
+                            encryptCreditCard(creditCard));
                     bufferedWriter.write(logEntry);
                     bufferedWriter.flush();
                 }
@@ -520,13 +596,13 @@ abstract class Account {
     Account(String acc_no, String name, int amount, int credit_card_no) {
         this(acc_no, name, amount);
         this.credit_card_no = credit_card_no;
-        System.out.println("Credit card added: " + credit_card_no);
+        System.out.println("Credit card added: [ENCRYPTED]");
     }
 
     Account(String acc_no, String name, int amount, String upi_id, int credit_card_no) {
         this(acc_no, name, amount, upi_id);
         this.credit_card_no = credit_card_no;
-        System.out.println("Credit card added: " + credit_card_no);
+        System.out.println("Credit card added: [ENCRYPTED]");
     }
 
     // Getters
@@ -604,7 +680,7 @@ abstract class Account {
         } catch (Throwable t) {
             System.out.println("An unexpected error occurred during withdrawal: " + t);
         } finally {
-            System.out.println("Credit card number: " + this.credit_card_no);
+            System.out.println("Credit card number: [ENCRYPTED]");
         }
         return this.amount;
     }
@@ -637,7 +713,7 @@ abstract class Account {
             System.out.println("  UPI ID: " + upi_id);
         }
         if (credit_card_no != -1) {
-            System.out.println("  Credit Card: " + credit_card_no);
+            System.out.println("  Credit Card: " + Main.maskCreditCard(credit_card_no));
         }
     }
 
@@ -648,7 +724,7 @@ abstract class Account {
         if (upi_id != null)
             str += ", UPI: " + upi_id;
         if (credit_card_no != -1)
-            str += ", Card: " + credit_card_no;
+            str += ", Card: " + Main.maskCreditCard(credit_card_no);
         return str + ")";
     }
 }
