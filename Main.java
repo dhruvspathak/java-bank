@@ -3,13 +3,10 @@ import java.util.Scanner;
 import java.util.Base64;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
-import javax.crypto.spec.IvParameterSpec;
-import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.nio.charset.StandardCharsets;
 import java.util.regex.Pattern;
 
-// Interface for all accounts - they are all taxable
 interface Taxable {
     double calculateTax();
 
@@ -20,7 +17,6 @@ interface Taxable {
     String getTaxDetails();
 }
 
-// Interface for parent accounts only - only they can transfer money
 interface Transferable {
     boolean transfer(Account recipient, double amount);
 
@@ -30,79 +26,54 @@ interface Transferable {
 }
 
 public class Main {
-    // Encryption key - in production, this should be stored securely and not
     private static final String ENCRYPTION_KEY = "BankSystemSecretKey2024!";
 
-    /**
-     * @param creditCardNumber The credit card number to encrypt
-     * @return Base64 encoded encrypted string, or "Not set" if no card number
-     */
     private static String encryptCreditCard(int creditCardNumber) {
         if (creditCardNumber == -1) {
             return "Not set";
         }
 
         try {
-            // Create a secure key from the encryption key using PBKDF2
             javax.crypto.SecretKeyFactory factory = javax.crypto.SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
             javax.crypto.spec.PBEKeySpec spec = new javax.crypto.spec.PBEKeySpec(
                     ENCRYPTION_KEY.toCharArray(),
                     "BankSystemSalt2024".getBytes(StandardCharsets.UTF_8),
-                    65536, // iterations
-                    256 // key length in bits
-            );
+                    65536,
+                    256);
             javax.crypto.SecretKey tmp = factory.generateSecret(spec);
             SecretKeySpec secretKey = new SecretKeySpec(tmp.getEncoded(), "AES");
 
-            // Generate a random nonce for GCM mode
             SecureRandom random = new SecureRandom();
-            byte[] nonce = new byte[12]; // 96-bit nonce for GCM
+            byte[] nonce = new byte[12];
             random.nextBytes(nonce);
             javax.crypto.spec.GCMParameterSpec gcmSpec = new javax.crypto.spec.GCMParameterSpec(128, nonce);
 
-            // Initialize cipher for encryption with GCM mode
             Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
             cipher.init(Cipher.ENCRYPT_MODE, secretKey, gcmSpec);
 
-            // Encrypt the credit card number
             String cardNumberStr = String.valueOf(creditCardNumber);
             byte[] encryptedBytes = cipher.doFinal(cardNumberStr.getBytes(StandardCharsets.UTF_8));
 
-            // Combine nonce and encrypted data for storage
             byte[] combined = new byte[nonce.length + encryptedBytes.length];
             System.arraycopy(nonce, 0, combined, 0, nonce.length);
             System.arraycopy(encryptedBytes, 0, combined, nonce.length, encryptedBytes.length);
 
-            // Return Base64 encoded encrypted string
             return Base64.getEncoder().encodeToString(combined);
 
         } catch (Exception e) {
-            // In case of encryption failure, return a masked version for security
             System.err.println("Encryption failed: " + e.getMessage());
             return maskCreditCard(creditCardNumber);
         }
     }
 
-    /**
-     * @param creditCardNumber The credit card number to mask
-     * @return Masked credit card string
-     */
     public static String maskCreditCard(int creditCardNumber) {
         if (creditCardNumber == -1) {
             return "Not set";
         }
 
-        // Secure masking without string manipulation to prevent side-channel leakage
         return "[MASKED]";
     }
 
-    /**
-     * Validates and sanitizes user input to prevent injection attacks
-     * 
-     * @param input   The user input to validate
-     * @param pattern The regex pattern to validate against
-     * @return Sanitized input or null if invalid
-     */
     private static String validateInput(String input, Pattern pattern) {
         if (input == null || input.trim().isEmpty()) {
             return null;
@@ -111,14 +82,6 @@ public class Main {
         return pattern.matcher(sanitized).matches() ? sanitized : null;
     }
 
-    /**
-     * Validates numeric input to prevent injection attacks
-     * 
-     * @param input The numeric input to validate
-     * @param min   The minimum allowed value
-     * @param max   The maximum allowed value
-     * @return Validated integer or -1 if invalid
-     */
     private static int validateNumericInput(String input, int min, int max) {
         try {
             int value = Integer.parseInt(input.trim());
@@ -128,17 +91,10 @@ public class Main {
         }
     }
 
-    /**
-     * Securely reads credit card input to prevent side-channel data leakage
-     * 
-     * @param scanner The scanner to read from
-     * @return Credit card number or -1 if invalid/not provided
-     */
     private static int readSecureCreditCard(Scanner scanner) {
         String input = scanner.nextLine();
         try {
             int cardNumber = Integer.parseInt(input.trim());
-            // Clear the input string from memory immediately
             input = null;
             return cardNumber;
         } catch (NumberFormatException e) {
@@ -147,11 +103,6 @@ public class Main {
         }
     }
 
-    /**
-     * Securely displays account information to prevent side-channel data leakage
-     * 
-     * @param account The account to display
-     */
     private static void displaySecureAccountInfo(Account account) {
         System.out.println("Account Details:");
         System.out.println("  Account Number: " + account.acc_no);
@@ -160,7 +111,6 @@ public class Main {
         if (account.upi_id != null) {
             System.out.println("  UPI ID: " + account.upi_id);
         }
-        // Securely handle credit card display without method calls that could leak data
         if (account.credit_card_no != -1) {
             System.out.println("  Credit Card: [SECURED]");
         }
@@ -169,7 +119,6 @@ public class Main {
     public static void main(String[] args) {
         System.out.println("Hello from OOPs class!\n");
 
-        // Define input validation patterns
         Pattern accountNumberPattern = Pattern.compile("^[A-Za-z0-9]{3,20}$");
         Pattern namePattern = Pattern.compile("^[A-Za-z\\s]{2,50}$");
         Pattern upiPattern = Pattern.compile("^[A-Za-z0-9._-]+@[A-Za-z0-9]+$");
@@ -177,10 +126,8 @@ public class Main {
 
         Scanner scanner = new Scanner(System.in);
 
-        // === File I/O ===
         String logPath;
         try {
-            // Use system temp directory for better security
             String tempDir = System.getProperty("java.io.tmpdir");
             if (tempDir == null || tempDir.trim().isEmpty()) {
                 tempDir = System.getProperty("user.home") + File.separator + ".bank_logs";
@@ -188,18 +135,15 @@ public class Main {
             logPath = tempDir + File.separator + "bank_logs_" + System.currentTimeMillis() + ".txt";
         } catch (SecurityException e) {
             System.err.println("Access denied to system properties: " + e.getMessage());
-            logPath = "bank_logs_" + System.currentTimeMillis() + ".txt"; // Fallback
+            logPath = "bank_logs_" + System.currentTimeMillis() + ".txt";
         }
         File file = new File(logPath).getAbsoluteFile();
 
-        // Ensure the file has proper permissions and is secure
         if (!file.exists()) {
             try {
-                // Create parent directory if it doesn't exist
                 File parentDir = file.getParentFile();
                 if (parentDir != null && !parentDir.exists()) {
                     parentDir.mkdirs();
-                    // Set directory permissions to owner only
                     parentDir.setReadable(false, false);
                     parentDir.setWritable(false, false);
                     parentDir.setExecutable(false, false);
@@ -207,14 +151,13 @@ public class Main {
                     parentDir.setWritable(true, true);
                     parentDir.setExecutable(true, true);
                 }
-                
+
                 file.createNewFile();
-                // Set file permissions to owner read/write only (600 equivalent)
-                file.setReadable(false, false); // No read for others
-                file.setWritable(false, false); // No write for others
-                file.setExecutable(false, false); // No execute for others
-                file.setReadable(true, true); // Owner can read
-                file.setWritable(true, true); // Owner can write
+                file.setReadable(false, false);
+                file.setWritable(false, false);
+                file.setExecutable(false, false);
+                file.setReadable(true, true);
+                file.setWritable(true, true);
             } catch (IOException e) {
                 System.err.println("Error creating log file: " + e.getMessage());
             }
@@ -234,7 +177,7 @@ public class Main {
                 System.out.print("Enter your choice (1-4): ");
 
                 int choice = scanner.nextInt();
-                scanner.nextLine(); // consume newline
+                scanner.nextLine();
 
                 if (choice == 4) {
                     System.out.println("Thank you for using the Banking System!");
@@ -250,7 +193,7 @@ public class Main {
                 String accountType = "";
 
                 if (choice == 1) {
-                    // Create Main Account
+
                     System.out.println("\n=== Creating Main Account ===");
                     System.out.print("Enter main account number: ");
                     String accNo = validateInput(scanner.nextLine(), accountNumberPattern);
@@ -265,7 +208,6 @@ public class Main {
                         System.out.println("Invalid name format. Please use 2-50 alphabetic characters.");
                         continue;
                     }
-                    // Validate size to prevent dangerous file size upload
                     if (name.length() > 50) {
                         System.out.println("Account holder name too long. Maximum 50 characters allowed.");
                         continue;
@@ -273,7 +215,7 @@ public class Main {
 
                     System.out.print("Enter initial balance: ");
                     int amount = scanner.nextInt();
-                    scanner.nextLine(); // consume newline
+                    scanner.nextLine();
 
                     System.out.print("Do you want to add UPI ID? (y/n): ");
                     String addUpi = validateInput(scanner.nextLine().toLowerCase(), yesNoPattern);
@@ -308,7 +250,6 @@ public class Main {
                         }
                     }
 
-                    // Create main account with validated inputs
                     if (upiId != null && creditCard != -1) {
                         account = new MainAccount(accNo, name, amount, upiId, creditCard);
                     } else if (upiId != null) {
@@ -318,9 +259,8 @@ public class Main {
                     } else {
                         account = new MainAccount(accNo, name, amount);
                     }
-                    accountType = "Main"; // Main account type
+                    accountType = "Main";
 
-                    // Log main account creation with encrypted credit card
                     String logEntry = String.format(
                             "[%s] %s Account created - ID: %s, Name: %s, Balance: ₹%d, UPI: %s, Card: %s\n",
                             java.time.LocalDateTime.now(),
@@ -334,7 +274,6 @@ public class Main {
                     bufferedWriter.flush();
 
                 } else {
-                    // Create Savings or Current Account (requires parent account)
                     System.out.print("Enter parent account number: ");
                     String parentAccNo = validateInput(scanner.nextLine(), accountNumberPattern);
                     if (parentAccNo == null) {
@@ -342,7 +281,6 @@ public class Main {
                                 "Invalid parent account number format. Please use 3-20 alphanumeric characters.");
                         continue;
                     }
-                    // Validate size to prevent dangerous file size upload
                     if (parentAccNo.length() > 20) {
                         System.out.println("Parent account number too long. Maximum 20 characters allowed.");
                         continue;
@@ -354,7 +292,6 @@ public class Main {
                         System.out.println("Invalid name format. Please use 2-50 alphabetic characters.");
                         continue;
                     }
-                    // Validate size to prevent dangerous file size upload
                     if (name.length() > 50) {
                         System.out.println("Account holder name too long. Maximum 50 characters allowed.");
                         continue;
@@ -362,7 +299,7 @@ public class Main {
 
                     System.out.print("Enter initial balance: ");
                     int amount = scanner.nextInt();
-                    scanner.nextLine(); // consume newline
+                    scanner.nextLine();
 
                     System.out.print("Do you want to add UPI ID? (y/n): ");
                     String addUpi = validateInput(scanner.nextLine().toLowerCase(), yesNoPattern);
@@ -398,7 +335,6 @@ public class Main {
                     }
 
                     if (choice == 2) {
-                        // Create Savings Account
                         System.out.println("\n=== Creating Savings Account ===");
                         if (upiId != null && creditCard != -1) {
                             account = new SavingsAccount(parentAccNo, name, amount, upiId, creditCard);
@@ -411,7 +347,6 @@ public class Main {
                         }
                         accountType = "Savings";
                     } else {
-                        // Create Current Account
                         System.out.println("\n=== Creating Current Account ===");
                         if (upiId != null && creditCard != -1) {
                             account = new CurrentAccount(parentAccNo, name, amount, upiId, creditCard);
@@ -425,8 +360,7 @@ public class Main {
                         accountType = "Current";
                     }
 
-                    // Log child account creation with encrypted credit card
-                    String parentAccNoForLog = account.getAccountId().substring(3); // Remove SAV/CUR prefix
+                    String parentAccNoForLog = account.getAccountId().substring(3);
                     String logEntry = String.format(
                             "[%s] %s Account created - Parent: MAIN%s, ID: %s, Name: %s, Balance: ₹%d, UPI: %s, Card: %s\n",
                             java.time.LocalDateTime.now(),
@@ -444,10 +378,8 @@ public class Main {
                 System.out.println("\nAccount created successfully!");
                 System.out.println("Account ID: " + account.getAccountId());
                 System.out.println("Account Type: " + accountType);
-                // Use secure display to prevent side-channel data leakage
                 displaySecureAccountInfo(account);
 
-                // Show tax and transfer information
                 if (account instanceof Taxable) {
                     Taxable taxableAccount = (Taxable) account;
                     System.out.println("\n=== Tax Information ===");
@@ -463,7 +395,6 @@ public class Main {
                     System.out.println("Transfer Details: " + transferableAccount.getTransferDetails());
                 }
 
-                // Transaction menu
                 while (true) {
                     System.out.println("\nTransaction Options:");
                     System.out.println("1. Deposit");
@@ -477,7 +408,7 @@ public class Main {
                     System.out.print("Enter your choice (1-6): ");
 
                     int transChoice = scanner.nextInt();
-                    scanner.nextLine(); // consume newline
+                    scanner.nextLine();
 
                     if (transChoice == 6)
                         break;
@@ -492,7 +423,6 @@ public class Main {
                             }
                             int newBalance = account.deposit(depositAmount);
 
-                            // Log transaction
                             String depositLog = String.format(
                                     "[%s] DEPOSIT - Account: %s, Amount: ₹%d, New Balance: ₹%d\n",
                                     java.time.LocalDateTime.now(),
@@ -552,7 +482,6 @@ public class Main {
                                     continue;
                             }
 
-                            // Log transaction
                             String withdrawLog = String.format(
                                     "[%s] WITHDRAW (%s) - Account: %s, Amount: ₹%d, New Balance: ₹%d\n",
                                     java.time.LocalDateTime.now(),
@@ -583,7 +512,6 @@ public class Main {
                                     taxableAccount.payTax();
                                     System.out.println("Tax paid successfully!");
 
-                                    // Log tax payment
                                     String taxLog = String.format(
                                             "[%s] TAX PAID - Account: %s, Amount: ₹%.2f\n",
                                             java.time.LocalDateTime.now(),
@@ -621,14 +549,12 @@ public class Main {
                                     continue;
                                 }
 
-                                // Create a dummy recipient account for demonstration
                                 Account recipient = new MainAccount(recipientAccNo, "Recipient", 0);
 
                                 boolean transferSuccess = transferableAccount.transfer(recipient, transferAmount);
                                 if (transferSuccess) {
                                     System.out.println("Transfer successful!");
 
-                                    // Log transfer
                                     String transferLog = String.format(
                                             "[%s] TRANSFER - From: %s, To: %s, Amount: ₹%.2f\n",
                                             java.time.LocalDateTime.now(),
@@ -663,8 +589,8 @@ public class Main {
 
 class MainAccount extends Account implements Taxable, Transferable {
     private String main_account_id;
-    private final double taxRate = 0.15; // 15% tax rate
-    private final double transferLimit = 1000000; // ₹10,00,000 transfer limit
+    private final double taxRate = 0.15;
+    private final double transferLimit = 1000000;
 
     MainAccount(String acc_no, String name, int amount) {
         super(acc_no, name, amount);
@@ -696,12 +622,12 @@ class MainAccount extends Account implements Taxable, Transferable {
 
     @Override
     protected int getInterestRate() {
-        return 0; // Main account has no interest
+        return 0;
     }
 
     @Override
     protected int getMinBalance() {
-        return 0; // Main account has no minimum balance
+        return 0;
     }
 
     @Override
@@ -709,7 +635,6 @@ class MainAccount extends Account implements Taxable, Transferable {
         return this.main_account_id;
     }
 
-    // Taxable interface implementation
     @Override
     public double calculateTax() {
         return this.amount * taxRate;
@@ -717,7 +642,7 @@ class MainAccount extends Account implements Taxable, Transferable {
 
     @Override
     public double getTaxRate() {
-        return taxRate * 100; // Return as percentage
+        return taxRate * 100;
     }
 
     @Override
@@ -736,7 +661,6 @@ class MainAccount extends Account implements Taxable, Transferable {
         return "Main Account Tax - Rate: " + getTaxRate() + "%, Taxable Amount: ₹" + this.amount;
     }
 
-    // Transferable interface implementation
     @Override
     public boolean transfer(Account recipient, double amount) {
         if (amount <= 0) {
@@ -770,21 +694,19 @@ class MainAccount extends Account implements Taxable, Transferable {
 }
 
 abstract class Account {
-    // protected variables (accessible by child classes)
+
     protected String acc_no;
     protected String name;
     protected int amount;
     protected String upi_id;
-    protected int credit_card_no = -1; // sentinel to indicate "not set"
+    protected int credit_card_no = -1;
 
-    // Abstract methods that child classes must implement
     protected abstract int getMinBalance();
 
     protected abstract int getInterestRate();
 
     protected abstract String getAccountId();
 
-    // Constructors
     Account(String acc_no, String name, int amount) {
         this.acc_no = acc_no;
         this.name = name;
@@ -810,7 +732,6 @@ abstract class Account {
         System.out.println("Credit card added: [ENCRYPTED]");
     }
 
-    // Getters
     public int getAmount() {
         return this.amount;
     }
@@ -819,7 +740,6 @@ abstract class Account {
         return this.name;
     }
 
-    // Business Logic
     public int deposit(int amount) {
         try {
             if (amount <= 0) {
@@ -922,7 +842,6 @@ abstract class Account {
         }
     }
 
-    // Proper string representation of object
     @Override
     public String toString() {
         String str = "Account(" + name + ", Balance: ₹" + amount;
@@ -939,7 +858,7 @@ class SavingsAccount extends Account implements Taxable {
     private final int min_balance = 2000;
     private String savings_account_id;
     private String parent_account_id;
-    private final double taxRate = 0.10; // 10% tax rate for savings
+    private final double taxRate = 0.10;
 
     SavingsAccount(String parent_acc_no, String name, int amount) {
         super(parent_acc_no, name, amount);
@@ -992,7 +911,6 @@ class SavingsAccount extends Account implements Taxable {
         return this.savings_account_id;
     }
 
-    // Taxable interface implementation
     @Override
     public double calculateTax() {
         return this.amount * taxRate;
@@ -1000,7 +918,7 @@ class SavingsAccount extends Account implements Taxable {
 
     @Override
     public double getTaxRate() {
-        return taxRate * 100; // Return as percentage
+        return taxRate * 100;
     }
 
     @Override
@@ -1061,7 +979,7 @@ class CurrentAccount extends Account implements Taxable {
     private final int min_balance = 0;
     private String current_account_id;
     private String parent_account_id;
-    private final double taxRate = 0.12; // 12% tax rate for current accounts
+    private final double taxRate = 0.12;
 
     CurrentAccount(String parent_acc_no, String name, int amount) {
         super(parent_acc_no, name, amount);
@@ -1114,7 +1032,6 @@ class CurrentAccount extends Account implements Taxable {
         return this.current_account_id;
     }
 
-    // Taxable interface implementation
     @Override
     public double calculateTax() {
         return this.amount * taxRate;
@@ -1122,7 +1039,7 @@ class CurrentAccount extends Account implements Taxable {
 
     @Override
     public double getTaxRate() {
-        return taxRate * 100; // Return as percentage
+        return taxRate * 100;
     }
 
     @Override
