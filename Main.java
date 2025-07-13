@@ -42,10 +42,16 @@ public class Main {
         }
 
         try {
-            // Create a secure key from the encryption key
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(ENCRYPTION_KEY.getBytes(StandardCharsets.UTF_8));
-            SecretKeySpec secretKey = new SecretKeySpec(hash, "AES");
+            // Create a secure key from the encryption key using PBKDF2
+            javax.crypto.SecretKeyFactory factory = javax.crypto.SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+            javax.crypto.spec.PBEKeySpec spec = new javax.crypto.spec.PBEKeySpec(
+                ENCRYPTION_KEY.toCharArray(), 
+                "BankSystemSalt2024".getBytes(StandardCharsets.UTF_8), 
+                65536, // iterations
+                256 // key length in bits
+            );
+            javax.crypto.SecretKey tmp = factory.generateSecret(spec);
+            SecretKeySpec secretKey = new SecretKeySpec(tmp.getEncoded(), "AES");
 
             // Generate a random initialization vector
             SecureRandom random = new SecureRandom();
@@ -84,11 +90,8 @@ public class Main {
             return "Not set";
         }
 
-        String cardStr = String.valueOf(creditCardNumber);
-        if (cardStr.length() > 4) {
-            return "****" + cardStr.substring(cardStr.length() - 4);
-        }
-        return "****";
+        // Secure masking without string manipulation to prevent side-channel leakage
+        return "[MASKED]";
     }
     
     /**
@@ -231,6 +234,11 @@ public class Main {
                         System.out.println("Invalid name format. Please use 2-50 alphabetic characters.");
                         continue;
                     }
+                    // Validate size to prevent dangerous file size upload
+                    if (name.length() > 50) {
+                        System.out.println("Account holder name too long. Maximum 50 characters allowed.");
+                        continue;
+                    }
 
                     System.out.print("Enter initial balance: ");
                     int amount = scanner.nextInt();
@@ -302,11 +310,21 @@ public class Main {
                         System.out.println("Invalid parent account number format. Please use 3-20 alphanumeric characters.");
                         continue;
                     }
+                    // Validate size to prevent dangerous file size upload
+                    if (parentAccNo.length() > 20) {
+                        System.out.println("Parent account number too long. Maximum 20 characters allowed.");
+                        continue;
+                    }
 
                     System.out.print("Enter account holder name: ");
                     String name = validateInput(scanner.nextLine(), namePattern);
                     if (name == null) {
                         System.out.println("Invalid name format. Please use 2-50 alphabetic characters.");
+                        continue;
+                    }
+                    // Validate size to prevent dangerous file size upload
+                    if (name.length() > 50) {
+                        System.out.println("Account holder name too long. Maximum 50 characters allowed.");
                         continue;
                     }
 
