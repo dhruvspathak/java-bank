@@ -178,16 +178,41 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
 
         // === File I/O ===
-        String logPath = System.getProperty("user.dir") + File.separator + "logs.txt";
+        String logPath;
+        try {
+            // Use system temp directory for better security
+            String tempDir = System.getProperty("java.io.tmpdir");
+            if (tempDir == null || tempDir.trim().isEmpty()) {
+                tempDir = System.getProperty("user.home") + File.separator + ".bank_logs";
+            }
+            logPath = tempDir + File.separator + "bank_logs_" + System.currentTimeMillis() + ".txt";
+        } catch (SecurityException e) {
+            System.err.println("Access denied to system properties: " + e.getMessage());
+            logPath = "bank_logs_" + System.currentTimeMillis() + ".txt"; // Fallback
+        }
         File file = new File(logPath).getAbsoluteFile();
 
         // Ensure the file has proper permissions and is secure
         if (!file.exists()) {
             try {
+                // Create parent directory if it doesn't exist
+                File parentDir = file.getParentFile();
+                if (parentDir != null && !parentDir.exists()) {
+                    parentDir.mkdirs();
+                    // Set directory permissions to owner only
+                    parentDir.setReadable(false, false);
+                    parentDir.setWritable(false, false);
+                    parentDir.setExecutable(false, false);
+                    parentDir.setReadable(true, true);
+                    parentDir.setWritable(true, true);
+                    parentDir.setExecutable(true, true);
+                }
+                
                 file.createNewFile();
                 // Set file permissions to owner read/write only (600 equivalent)
                 file.setReadable(false, false); // No read for others
                 file.setWritable(false, false); // No write for others
+                file.setExecutable(false, false); // No execute for others
                 file.setReadable(true, true); // Owner can read
                 file.setWritable(true, true); // Owner can write
             } catch (IOException e) {
