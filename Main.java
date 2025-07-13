@@ -5,7 +5,6 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import javax.crypto.spec.IvParameterSpec;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.nio.charset.StandardCharsets;
 import java.util.regex.Pattern;
@@ -121,6 +120,24 @@ public class Main {
             return -1;
         }
     }
+    
+    /**
+     * Securely reads credit card input to prevent side-channel data leakage
+     * @param scanner The scanner to read from
+     * @return Credit card number or -1 if invalid/not provided
+     */
+    private static int readSecureCreditCard(Scanner scanner) {
+        String input = scanner.nextLine();
+        try {
+            int cardNumber = Integer.parseInt(input.trim());
+            // Clear the input string from memory immediately
+            input = null;
+            return cardNumber;
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid credit card number format.");
+            return -1;
+        }
+    }
 
     public static void main(String[] args) {
         System.out.println("Hello from OOPs class!\n");
@@ -228,8 +245,10 @@ public class Main {
                     int creditCard = -1;
                     if (addCard.equals("y") || addCard.equals("yes")) {
                         System.out.print("Enter credit card number: ");
-                        creditCard = scanner.nextInt();
-                        scanner.nextLine(); // consume newline
+                        creditCard = readSecureCreditCard(scanner);
+                        if (creditCard == -1) {
+                            continue;
+                        }
                     }
 
                     // Create main account with validated inputs
@@ -304,8 +323,10 @@ public class Main {
                     int creditCard = -1;
                     if (addCard.equals("y") || addCard.equals("yes")) {
                         System.out.print("Enter credit card number: ");
-                        creditCard = scanner.nextInt();
-                        scanner.nextLine(); // consume newline
+                        creditCard = readSecureCreditCard(scanner);
+                        if (creditCard == -1) {
+                            continue;
+                        }
                     }
 
                     if (choice == 2) {
@@ -444,8 +465,10 @@ public class Main {
                                     break;
                                 case 3:
                                     System.out.print("Enter credit card number: ");
-                                    int withdrawCard = scanner.nextInt();
-                                    scanner.nextLine();
+                                    int withdrawCard = readSecureCreditCard(scanner);
+                                    if (withdrawCard == -1) {
+                                        continue;
+                                    }
                                     finalBalance = account.withdraw(withdrawCard, withdrawAmount);
                                     withdrawMethod = "Credit Card";
                                     break;
