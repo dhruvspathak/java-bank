@@ -1,113 +1,254 @@
-# Banking System - Modular Architecture
+# Banking Account Management System
 
-This banking system has been refactored into a clean, modular architecture following Java best practices.
+A secure, modular Java banking system implementing Object-Oriented Programming principles with enterprise-grade security features.
 
-## Project Structure
+## 🏦 Business Features
 
+### Account Types
+- **Main Account**: Primary account with transfer capabilities and 15% tax rate
+- **Savings Account**: Interest-bearing account (2% interest) with 10% tax rate, requires parent account
+- **Current Account**: Business account with 0% interest and 12% tax rate, requires parent account
+
+### Banking Operations
+- ✅ **Account Creation**: Secure account setup with validation
+- ✅ **Deposits**: Simple deposit operations with balance tracking
+- ✅ **Withdrawals**: Multiple withdrawal methods (Simple, UPI, Credit Card)
+- ✅ **Money Transfers**: Inter-account transfers with limits (₹10,00,000)
+- ✅ **Tax Management**: Automatic tax calculation and payment
+- ✅ **Transaction Logging**: Comprehensive audit trail for all operations
+
+### Security Features
+- 🔐 **AES-GCM Encryption**: Military-grade encryption for credit card data
+- 🔐 **Input Validation**: Regex-based validation for all user inputs
+- 🔐 **Secure Logging**: Encrypted sensitive data in audit logs
+- 🔐 **Access Control**: Package-private constructors with factory methods
+- 🔐 **File Security**: Restrictive file permissions for log files
+
+## 🏗️ Technical Architecture
+
+### Modular Design
 ```
 src/main/java/com/bankingsystem/
 ├── model/                    # Data classes and interfaces
-│   ├── Taxable.java         # Interface for taxable accounts
-│   ├── Transferable.java    # Interface for transferable accounts
 │   ├── Account.java         # Abstract base account class
 │   ├── MainAccount.java     # Main account implementation
 │   ├── SavingsAccount.java  # Savings account implementation
-│   └── CurrentAccount.java  # Current account implementation
+│   ├── CurrentAccount.java  # Current account implementation
+│   ├── Taxable.java         # Interface for taxable accounts
+│   └── Transferable.java    # Interface for transferable accounts
 ├── service/                  # Business logic services
 │   ├── AccountService.java  # Account creation and management
 │   ├── TransactionService.java # Transaction processing
-│   └── LoggingService.java  # Logging operations
+│   └── LoggingService.java  # Secure logging operations
 ├── util/                     # Utility classes
 │   ├── ValidationUtils.java # Input validation utilities
 │   └── EncryptionUtils.java # Encryption and security utilities
-├── exception/                # Custom exceptions (future use)
 └── Main.java                # Application entry point
 ```
 
-## Key Benefits of This Architecture
+### Design Patterns
+- **Factory Pattern**: Controlled object creation for security
+- **Dependency Injection**: Service-based architecture
+- **Strategy Pattern**: Different account types with common interface
+- **Template Method**: Abstract Account class with concrete implementations
 
-### 1. **Separation of Concerns**
-- **Model classes**: Handle data representation and business rules
-- **Service classes**: Handle business logic and operations
-- **Utility classes**: Provide reusable helper functions
-- **Main class**: Orchestrates the application flow
+### Key Technologies
+- **Java 8+**: Core language features
+- **AES-GCM**: Advanced encryption standard
+- **PBKDF2**: Password-based key derivation
+- **Regex Validation**: Input sanitization
+- **File I/O**: Secure logging system
 
-### 2. **Single Responsibility Principle**
-Each class has one clear purpose:
-- `AccountService`: Account creation and management
-- `TransactionService`: Transaction processing
-- `LoggingService`: All logging operations
-- `ValidationUtils`: Input validation
-- `EncryptionUtils`: Security operations
+## 🔒 Security Implementation
 
-### 3. **Dependency Injection**
-Services are injected into other services, making the code:
-- More testable (can mock dependencies)
-- More flexible (can swap implementations)
-- Loosely coupled
+### Encryption Standards
+```java
+// AES-GCM with 256-bit key
+Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+// PBKDF2 with 65,536 iterations
+PBEKeySpec spec = new PBEKeySpec(key, salt, 65536, 256);
+```
 
-### 4. **Improved Maintainability**
-- Changes to one component don't affect others
-- Easy to find and fix bugs
-- Clear code organization
+### Access Control
+- **Package-Private Constructors**: Prevent direct instantiation
+- **Factory Methods**: Controlled object creation
+- **Protected Fields**: Encapsulated sensitive data
+- **Public Interfaces**: Well-defined API boundaries
 
-### 5. **Enhanced Security**
-- Centralized encryption utilities
-- Secure input validation
-- Proper exception handling
+### Input Validation
+- **Account Numbers**: 3-20 alphanumeric characters
+- **Names**: 2-50 alphabetic characters
+- **UPI IDs**: username@bank format
+- **Credit Cards**: Numeric validation with secure input
 
-## How to Run
+### Secure Logging
+- **Encrypted Credit Cards**: Never stored in plain text
+- **Restricted File Permissions**: Owner-only access
+- **Audit Trail**: Complete transaction history
+- **Error Handling**: No sensitive information in error messages
 
-### (a) Current Method (Direct Compilation)
+## 🚀 Quick Start
 
-1. **Compile all classes:**
-   ```bash
-   javac -cp "src/main/java" src/main/java/com/bankingsystem/**/*.java
-   ```
-2. **Run the application:**
-   ```bash
-   java -cp "src/main/java" com.bankingsystem.Main
-   ```
+### Prerequisites
+- Java 8 or higher
+- Windows/Linux/macOS
 
-### (b) JAR Method
+### Environment Setup (Optional)
+For production deployment, set these environment variables:
+```bash
+export BANK_ENCRYPTION_KEY="your-secure-encryption-key"
+export BANK_ENCRYPTION_SALT="your-secure-salt"
+```
 
-1. **Build the JAR (using provided script):**
-   - On Windows:
-     ```bat
-     build-jar.bat
-     ```
-   - On Linux/Mac:
-     ```sh
-     chmod +x build-jar.sh
-     ./build-jar.sh
-     ```
-2. **Run the JAR:**
-   ```bash
-   java -jar BankingSystem.jar
-   ```
+### Build and Run
 
-## Features
+#### Method 1: Direct Compilation (Development)
+```bash
+# Windows
+./build.bat
 
-- **Account Types**: Main, Savings, and Current accounts
-- **Security**: AES-GCM encryption for credit card data
-- **Validation**: Comprehensive input validation
-- **Logging**: Secure transaction logging
-- **Taxation**: Different tax rates for different account types
-- **Transfers**: Money transfer capabilities for main accounts
+# Linux/macOS
+chmod +x build.sh
+./build.sh
+```
 
-## Security Features
+#### Method 2: JAR File (Production)
+```bash
+# Windows
+./build-jar.bat
 
-- **Encryption**: AES-GCM for credit card data
-- **Input Validation**: Regex-based validation for all inputs
-- **Secure Logging**: Encrypted sensitive data in logs
-- **File Permissions**: Secure file creation with proper permissions
-- **Side-Channel Protection**: Secure handling of sensitive data
+# Linux/macOS
+chmod +x build-jar.sh
+./build-jar.sh
 
-## Future Enhancements
+# Run JAR
+java -jar BankingSystem.jar
+```
 
-- Database integration
-- REST API endpoints
-- Web interface
-- Advanced security features
-- Unit tests
-- Integration tests 
+#### Method 3: Manual Compilation
+```bash
+# Compile
+javac -d bin -cp "src/main/java" src/main/java/com/bankingsystem/**/*.java
+
+# Run
+java -cp "bin" com.bankingsystem.Main
+```
+
+## 📋 Usage Guide
+
+### Creating Accounts
+1. **Main Account**: Primary account with full features
+2. **Savings Account**: Requires existing main account as parent
+3. **Current Account**: Requires existing main account as parent
+
+### Transaction Types
+1. **Deposits**: Add funds to any account
+2. **Withdrawals**: 
+   - Simple withdrawal
+   - UPI-based withdrawal (requires UPI ID)
+   - Credit card withdrawal (requires card number)
+3. **Transfers**: Move money between accounts (Main accounts only)
+4. **Tax Payments**: Automatic calculation and payment
+
+### Security Best Practices
+- Use strong encryption keys in production
+- Regularly rotate encryption keys
+- Monitor log files for suspicious activity
+- Implement network security for distributed deployment
+
+## 🧪 Testing
+
+### Sample Session
+```
+=== Banking Account Management System ===
+
+Choose operation:
+1. Create Main Account
+2. Create Savings Account (requires parent account)
+3. Create Current Account (requires parent account)
+4. Exit
+
+Enter your choice (1-4): 1
+
+=== Creating Main Account ===
+Enter main account number: ACC123
+Enter account holder name: John Doe
+Enter initial balance: 10000
+Do you want to add UPI ID? (y/n): y
+Enter UPI ID: john@bank
+Do you want to add credit card? (y/n): y
+Enter credit card number: 1234567890
+
+Account created successfully!
+Account ID: MAINACC123
+Account Type: Main
+```
+
+## 🔧 Configuration
+
+### Logging Configuration
+- **Log Location**: System temp directory or user home
+- **Log Format**: Timestamped entries with encrypted sensitive data
+- **File Permissions**: Owner-only read/write access
+
+### Security Configuration
+- **Encryption**: AES-GCM with PBKDF2 key derivation
+- **Key Management**: Environment variables or system properties
+- **Fallback**: Development keys (NOT for production)
+
+## 📊 Performance
+
+### System Requirements
+- **Memory**: Minimum 128MB RAM
+- **Storage**: 1MB for application + log files
+- **CPU**: Any modern processor
+
+### Scalability
+- **Modular Design**: Easy to extend with new account types
+- **Service Layer**: Can be distributed across multiple servers
+- **Database Ready**: Architecture supports database integration
+
+## 🛡️ Security Considerations
+
+### Production Deployment
+1. **Set Environment Variables**: Use strong encryption keys
+2. **Network Security**: Implement SSL/TLS for network communication
+3. **Access Control**: Restrict file system access
+4. **Monitoring**: Implement intrusion detection
+5. **Backup**: Secure backup of log files
+
+### Known Limitations
+- **Single-User**: Console-based interface
+- **Local Storage**: File-based logging (not distributed)
+- **No Database**: In-memory account storage
+- **No Network**: Local-only operation
+
+## 🤝 Contributing
+
+### Development Guidelines
+1. **Security First**: All changes must maintain security standards
+2. **Testing**: Test all new features thoroughly
+3. **Documentation**: Update documentation for any changes
+4. **Code Review**: Security review required for all changes
+
+### Code Standards
+- **Java Conventions**: Follow standard Java naming conventions
+- **Error Handling**: Use generic error messages
+- **Logging**: Encrypt all sensitive data in logs
+- **Validation**: Validate all user inputs
+
+## 📄 License
+
+This project is for educational purposes. For production use, ensure proper security audits and compliance with financial regulations.
+
+## 📞 Support
+
+For issues or questions:
+1. Check the security configuration
+2. Verify environment variables are set correctly
+3. Review log files for error details
+4. Ensure Java version compatibility
+
+---
+
+**⚠️ Security Notice**: This system implements banking-grade security features. For production deployment, conduct thorough security audits and ensure compliance with local financial regulations. 
