@@ -56,7 +56,7 @@ public abstract class Account {
         } catch (IllegalArgumentException e) {
             System.out.println("Deposit failed: " + e.getMessage());
         } catch (Throwable t) {
-            System.out.println("An unexpected error occurred during deposit: " + t);
+            System.out.println("An unexpected error occurred during deposit");
         }
         return this.amount;
     }
@@ -83,7 +83,7 @@ public abstract class Account {
         } catch (IllegalArgumentException | IllegalStateException | SecurityException | ArithmeticException e) {
             System.out.println("Withdrawal failed: " + e.getMessage());
         } catch (Throwable t) {
-            System.out.println("An unexpected error occurred during withdrawal: " + t);
+            System.out.println("An unexpected error occurred during withdrawal");
         } finally {
             System.out.println("UPI ID: " + this.upi_id);
         }
@@ -109,7 +109,7 @@ public abstract class Account {
         } catch (IllegalArgumentException | ArithmeticException | SecurityException e) {
             System.out.println("Withdrawal failed: " + e.getMessage());
         } catch (Throwable t) {
-            System.out.println("An unexpected error occurred during withdrawal: " + t);
+            System.out.println("An unexpected error occurred during withdrawal");
         } finally {
             System.out.println("Credit card number: [ENCRYPTED]");
         }
@@ -130,7 +130,7 @@ public abstract class Account {
         } catch (IllegalArgumentException | ArithmeticException e) {
             System.out.println("Withdrawal failed: " + e.getMessage());
         } catch (Throwable t) {
-            System.out.println("An unexpected error occurred during withdrawal: " + t);
+            System.out.println("An unexpected error occurred during withdrawal");
         }
         return this.amount;
     }

@@ -43,6 +43,19 @@ public class CurrentAccount extends Account implements Taxable {
         System.out.println("Current Account ID: " + this.current_account_id);
     }
 
+    // Factory method for safer instantiation
+    public static CurrentAccount createAccount(String parent_acc_no, String name, int amount, String upi_id, int credit_card_no) {
+        if (upi_id != null && credit_card_no != -1) {
+            return new CurrentAccount(parent_acc_no, name, amount, upi_id, credit_card_no);
+        } else if (upi_id != null) {
+            return new CurrentAccount(parent_acc_no, name, amount, upi_id);
+        } else if (credit_card_no != -1) {
+            return new CurrentAccount(parent_acc_no, name, amount, credit_card_no);
+        } else {
+            return new CurrentAccount(parent_acc_no, name, amount);
+        }
+    }
+
     @Override
     protected int getInterestRate() {
         return this.interest_rate;
@@ -95,7 +108,7 @@ public class CurrentAccount extends Account implements Taxable {
         } catch (IllegalArgumentException e) {
             System.out.println("Deposit failed: " + e.getMessage());
         } catch (Throwable t) {
-            System.out.println("An unexpected error occurred during deposit: " + t);
+            System.out.println("An unexpected error occurred during deposit");
         }
         return this.amount;
     }
@@ -115,7 +128,7 @@ public class CurrentAccount extends Account implements Taxable {
         } catch (IllegalArgumentException | ArithmeticException e) {
             System.out.println("Withdrawal failed: " + e.getMessage());
         } catch (Throwable t) {
-            System.out.println("An unexpected error occurred during withdrawal: " + t);
+            System.out.println("An unexpected error occurred during withdrawal");
         }
         return this.amount;
     }

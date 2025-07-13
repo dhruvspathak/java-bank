@@ -15,20 +15,23 @@ public class LoggingService implements AutoCloseable {
             File parentDir = file.getParentFile();
             if (parentDir != null && !parentDir.exists()) {
                 parentDir.mkdirs();
+                // Set restrictive permissions on directory
                 parentDir.setReadable(false, false);
                 parentDir.setWritable(false, false);
                 parentDir.setExecutable(false, false);
-                parentDir.setReadable(true, true);
-                parentDir.setWritable(true, true);
-                parentDir.setExecutable(true, true);
+                parentDir.setReadable(true, true);   // Only owner can read
+                parentDir.setWritable(true, true);   // Only owner can write
+                parentDir.setExecutable(true, true); // Only owner can execute (for directory access)
             }
 
             file.createNewFile();
+            // Set restrictive permissions on log file
             file.setReadable(false, false);
             file.setWritable(false, false);
             file.setExecutable(false, false);
-            file.setReadable(true, true);
-            file.setWritable(true, true);
+            file.setReadable(true, true);   // Only owner can read
+            file.setWritable(true, true);   // Only owner can write
+            // Note: No execute permission on files
         }
 
         // Resource is properly managed by AutoCloseable implementation
@@ -65,7 +68,7 @@ public class LoggingService implements AutoCloseable {
             bufferedWriter.write(logEntry);
             bufferedWriter.flush();
         } catch (IOException e) {
-            System.err.println("Error logging account creation: " + e.getMessage());
+            System.err.println("Error logging account creation");
         }
     }
 
@@ -80,7 +83,7 @@ public class LoggingService implements AutoCloseable {
             bufferedWriter.write(logEntry);
             bufferedWriter.flush();
         } catch (IOException e) {
-            System.err.println("Error logging deposit: " + e.getMessage());
+            System.err.println("Error logging deposit");
         }
     }
 
@@ -96,7 +99,7 @@ public class LoggingService implements AutoCloseable {
             bufferedWriter.write(logEntry);
             bufferedWriter.flush();
         } catch (IOException e) {
-            System.err.println("Error logging withdrawal: " + e.getMessage());
+            System.err.println("Error logging withdrawal");
         }
     }
 
@@ -110,7 +113,7 @@ public class LoggingService implements AutoCloseable {
             bufferedWriter.write(logEntry);
             bufferedWriter.flush();
         } catch (IOException e) {
-            System.err.println("Error logging tax payment: " + e.getMessage());
+            System.err.println("Error logging tax payment");
         }
     }
 
@@ -125,7 +128,7 @@ public class LoggingService implements AutoCloseable {
             bufferedWriter.write(logEntry);
             bufferedWriter.flush();
         } catch (IOException e) {
-            System.err.println("Error logging transfer: " + e.getMessage());
+            System.err.println("Error logging transfer");
         }
     }
 
@@ -135,7 +138,7 @@ public class LoggingService implements AutoCloseable {
                 bufferedWriter.close();
             }
         } catch (IOException e) {
-            System.err.println("Error closing log file: " + e.getMessage());
+            System.err.println("Error closing log file");
         }
     }
 }
