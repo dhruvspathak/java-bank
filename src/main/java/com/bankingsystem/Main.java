@@ -7,6 +7,13 @@ import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
+        // Security check: Prevent running with elevated privileges
+        if (isRunningAsRoot()) {
+            System.err.println("Security Error: Banking application should not run with elevated privileges.");
+            System.err.println("Please run the application as a regular user.");
+            System.exit(1);
+        }
+
         System.out.println("Hello from OOPs class!\n");
 
         String logPath;
@@ -250,5 +257,9 @@ public class Main {
                     System.out.println("Invalid choice!");
             }
         }
+    }
+
+    private static boolean isRunningAsRoot() {
+        return System.getProperty("user.name").equals("root");
     }
 }

@@ -15,7 +15,7 @@ public class LoggingService implements AutoCloseable {
             File parentDir = file.getParentFile();
             if (parentDir != null && !parentDir.exists()) {
                 parentDir.mkdirs();
-                // Set restrictive permissions on directory
+                // Set restrictive directory permissions
                 parentDir.setReadable(false, false);
                 parentDir.setWritable(false, false);
                 parentDir.setExecutable(false, false);
@@ -24,14 +24,15 @@ public class LoggingService implements AutoCloseable {
                 parentDir.setExecutable(true, true); // Only owner can execute (for directory access)
             }
 
-            file.createNewFile();
-            // Set restrictive permissions on log file
-            file.setReadable(false, false);
-            file.setWritable(false, false);
-            file.setExecutable(false, false);
-            file.setReadable(true, true);   // Only owner can read
-            file.setWritable(true, true);   // Only owner can write
-            // Note: No execute permission on files
+            // Create file with immediate permission setting
+            if (file.createNewFile()) {
+                // Immediately set restrictive permissions
+                file.setReadable(false, false);
+                file.setWritable(false, false);
+                file.setExecutable(false, false);
+                file.setReadable(true, true);   // Only owner can read
+                file.setWritable(true, true);   // Only owner can write
+            }
         }
 
         // Resource is properly managed by AutoCloseable implementation
