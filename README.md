@@ -58,14 +58,32 @@ Services are injected into other services, making the code:
 
 ## How to Run
 
-1. **Compile all classes**:
+### (a) Current Method (Direct Compilation)
+
+1. **Compile all classes:**
    ```bash
    javac -cp "src/main/java" src/main/java/com/bankingsystem/**/*.java
    ```
-
-2. **Run the application**:
+2. **Run the application:**
    ```bash
    java -cp "src/main/java" com.bankingsystem.Main
+   ```
+
+### (b) JAR Method
+
+1. **Build the JAR (using provided script):**
+   - On Windows:
+     ```bat
+     build-jar.bat
+     ```
+   - On Linux/Mac:
+     ```sh
+     chmod +x build-jar.sh
+     ./build-jar.sh
+     ```
+2. **Run the JAR:**
+   ```bash
+   java -jar BankingSystem.jar
    ```
 
 ## Features

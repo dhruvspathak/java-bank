@@ -1,0 +1,3 @@
+Manifest-Version: 1.0
+Main-Class: com.bankingsystem.Main
+Created-By: Banking System v1.0 

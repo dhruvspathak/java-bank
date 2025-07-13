@@ -8,14 +8,14 @@ import java.util.regex.Pattern;
 
 public class AccountService {
     private final LoggingService loggingService;
-    
+
     public AccountService(LoggingService loggingService) {
         this.loggingService = loggingService;
     }
-    
+
     public Account createMainAccount(String accNo, String name, int amount, String upiId, int creditCard) {
         Account account;
-        
+
         if (upiId != null && creditCard != -1) {
             account = new MainAccount(accNo, name, amount, upiId, creditCard);
         } else if (upiId != null) {
@@ -25,14 +25,14 @@ public class AccountService {
         } else {
             account = new MainAccount(accNo, name, amount);
         }
-        
+
         loggingService.logAccountCreation(account, "Main", upiId, creditCard);
         return account;
     }
-    
+
     public Account createSavingsAccount(String parentAccNo, String name, int amount, String upiId, int creditCard) {
         Account account;
-        
+
         if (upiId != null && creditCard != -1) {
             account = new SavingsAccount(parentAccNo, name, amount, upiId, creditCard);
         } else if (upiId != null) {
@@ -42,14 +42,14 @@ public class AccountService {
         } else {
             account = new SavingsAccount(parentAccNo, name, amount);
         }
-        
+
         loggingService.logAccountCreation(account, "Savings", upiId, creditCard);
         return account;
     }
-    
+
     public Account createCurrentAccount(String parentAccNo, String name, int amount, String upiId, int creditCard) {
         Account account;
-        
+
         if (upiId != null && creditCard != -1) {
             account = new CurrentAccount(parentAccNo, name, amount, upiId, creditCard);
         } else if (upiId != null) {
@@ -59,11 +59,11 @@ public class AccountService {
         } else {
             account = new CurrentAccount(parentAccNo, name, amount, creditCard);
         }
-        
+
         loggingService.logAccountCreation(account, "Current", upiId, creditCard);
         return account;
     }
-    
+
     public void displaySecureAccountInfo(Account account) {
         System.out.println("Account Details:");
         System.out.println("  Account Number: " + account.acc_no);
@@ -76,4 +76,4 @@ public class AccountService {
             System.out.println("  Credit Card: [SECURED]");
         }
     }
-} 
+}

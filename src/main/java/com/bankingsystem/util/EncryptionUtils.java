@@ -17,11 +17,10 @@ public class EncryptionUtils {
         try {
             javax.crypto.SecretKeyFactory factory = javax.crypto.SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
             javax.crypto.spec.PBEKeySpec spec = new javax.crypto.spec.PBEKeySpec(
-                ENCRYPTION_KEY.toCharArray(), 
-                "BankSystemSalt2024".getBytes(StandardCharsets.UTF_8), 
-                65536,
-                256
-            );
+                    ENCRYPTION_KEY.toCharArray(),
+                    "BankSystemSalt2024".getBytes(StandardCharsets.UTF_8),
+                    65536,
+                    256);
             javax.crypto.SecretKey tmp = factory.generateSecret(spec);
             SecretKeySpec secretKey = new SecretKeySpec(tmp.getEncoded(), "AES");
 
@@ -54,4 +53,4 @@ public class EncryptionUtils {
         }
         return "[MASKED]";
     }
-} 
+}

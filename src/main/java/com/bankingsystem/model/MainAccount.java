@@ -104,4 +104,4 @@ public class MainAccount extends Account implements Taxable, Transferable {
     public String getTransferDetails() {
         return "Main Account Transfer - Limit: ₹" + transferLimit + ", Current Balance: ₹" + this.amount;
     }
-} 
+}

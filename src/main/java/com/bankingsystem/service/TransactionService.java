@@ -3,15 +3,14 @@ package com.bankingsystem.service;
 import com.bankingsystem.model.*;
 import com.bankingsystem.util.ValidationUtils;
 import java.util.Scanner;
-import java.util.regex.Pattern;
 
 public class TransactionService {
     private final LoggingService loggingService;
-    
+
     public TransactionService(LoggingService loggingService) {
         this.loggingService = loggingService;
     }
-    
+
     public int processDeposit(Account account, Scanner scanner) {
         System.out.print("Enter deposit amount: ");
         int depositAmount = ValidationUtils.validateNumericInput(scanner.nextLine(), 1, Integer.MAX_VALUE);
@@ -19,12 +18,12 @@ public class TransactionService {
             System.out.println("Invalid deposit amount. Please enter a positive number.");
             return -1;
         }
-        
+
         int newBalance = account.deposit(depositAmount);
         loggingService.logDeposit(account, depositAmount, newBalance);
         return newBalance;
     }
-    
+
     public int processWithdrawal(Account account, Scanner scanner) {
         System.out.println("Withdrawal Options:");
         System.out.println("1. Simple Withdraw");
@@ -77,14 +76,15 @@ public class TransactionService {
         loggingService.logWithdrawal(account, withdrawAmount, finalBalance, withdrawMethod);
         return finalBalance;
     }
-    
+
     public boolean processTaxPayment(Account account, Scanner scanner) {
         if (account instanceof Taxable) {
             Taxable taxableAccount = (Taxable) account;
             double taxAmount = taxableAccount.calculateTax();
             System.out.println("Tax amount: ₹" + taxAmount);
             System.out.print("Do you want to pay tax? (y/n): ");
-            String payTax = ValidationUtils.validateInput(scanner.nextLine().toLowerCase(), ValidationUtils.getYesNoPattern());
+            String payTax = ValidationUtils.validateInput(scanner.nextLine().toLowerCase(),
+                    ValidationUtils.getYesNoPattern());
             if (payTax == null) {
                 System.out.println("Invalid input. Please enter 'y', 'yes', 'n', or 'no'.");
                 return false;
@@ -100,12 +100,13 @@ public class TransactionService {
         }
         return false;
     }
-    
+
     public boolean processTransfer(Account account, Scanner scanner) {
         if (account instanceof Transferable) {
             Transferable transferableAccount = (Transferable) account;
             System.out.print("Enter recipient account number: ");
-            String recipientAccNo = ValidationUtils.validateInput(scanner.nextLine(), ValidationUtils.getAccountNumberPattern());
+            String recipientAccNo = ValidationUtils.validateInput(scanner.nextLine(),
+                    ValidationUtils.getAccountNumberPattern());
             if (recipientAccNo == null) {
                 System.out.println("Invalid recipient account number format. Please use 3-20 alphanumeric characters.");
                 return false;
@@ -140,4 +141,4 @@ public class TransactionService {
             return false;
         }
     }
-} 
+}

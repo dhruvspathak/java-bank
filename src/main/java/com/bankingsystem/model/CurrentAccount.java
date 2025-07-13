@@ -119,4 +119,4 @@ public class CurrentAccount extends Account implements Taxable {
         }
         return this.amount;
     }
-} 
+}

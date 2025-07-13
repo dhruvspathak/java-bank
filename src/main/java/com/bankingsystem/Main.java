@@ -111,7 +111,8 @@ public class Main {
 
     private static Account createChildAccount(Scanner scanner, AccountService accountService, int choice) {
         System.out.print("Enter parent account number: ");
-        String parentAccNo = ValidationUtils.validateInput(scanner.nextLine(), ValidationUtils.getAccountNumberPattern());
+        String parentAccNo = ValidationUtils.validateInput(scanner.nextLine(),
+                ValidationUtils.getAccountNumberPattern());
         if (parentAccNo == null) {
             System.out.println("Invalid parent account number format. Please use 3-20 alphanumeric characters.");
             return null;
@@ -150,7 +151,8 @@ public class Main {
 
     private static String getUpiId(Scanner scanner) {
         System.out.print("Do you want to add UPI ID? (y/n): ");
-        String addUpi = ValidationUtils.validateInput(scanner.nextLine().toLowerCase(), ValidationUtils.getYesNoPattern());
+        String addUpi = ValidationUtils.validateInput(scanner.nextLine().toLowerCase(),
+                ValidationUtils.getYesNoPattern());
         if (addUpi == null) {
             System.out.println("Invalid input. Please enter 'y', 'yes', 'n', or 'no'.");
             return null;
@@ -174,7 +176,8 @@ public class Main {
 
     private static int getCreditCard(Scanner scanner) {
         System.out.print("Do you want to add credit card? (y/n): ");
-        String addCard = ValidationUtils.validateInput(scanner.nextLine().toLowerCase(), ValidationUtils.getYesNoPattern());
+        String addCard = ValidationUtils.validateInput(scanner.nextLine().toLowerCase(),
+                ValidationUtils.getYesNoPattern());
         if (addCard == null) {
             System.out.println("Invalid input. Please enter 'y', 'yes', 'n', or 'no'.");
             return -1;

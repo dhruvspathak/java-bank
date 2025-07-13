@@ -53,4 +53,4 @@ public class ValidationUtils {
     public static Pattern getYesNoPattern() {
         return YES_NO_PATTERN;
     }
-} 
+}

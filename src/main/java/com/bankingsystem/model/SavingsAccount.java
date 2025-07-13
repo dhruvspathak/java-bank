@@ -119,4 +119,4 @@ public class SavingsAccount extends Account implements Taxable {
         }
         return this.amount;
     }
-} 
+}
