@@ -138,6 +138,24 @@ public class Main {
             return -1;
         }
     }
+    
+    /**
+     * Securely displays account information to prevent side-channel data leakage
+     * @param account The account to display
+     */
+    private static void displaySecureAccountInfo(Account account) {
+        System.out.println("Account Details:");
+        System.out.println("  Account Number: " + account.acc_no);
+        System.out.println("  Name: " + account.getName());
+        System.out.println("  Balance: " + account.getAmount());
+        if (account.upi_id != null) {
+            System.out.println("  UPI ID: " + account.upi_id);
+        }
+        // Securely handle credit card display without method calls that could leak data
+        if (account.credit_card_no != -1) {
+            System.out.println("  Credit Card: [SECURED]");
+        }
+    }
 
     public static void main(String[] args) {
         System.out.println("Hello from OOPs class!\n");
@@ -376,7 +394,8 @@ public class Main {
                 System.out.println("\nAccount created successfully!");
                 System.out.println("Account ID: " + account.getAccountId());
                 System.out.println("Account Type: " + accountType);
-                account.display();
+                // Use secure display to prevent side-channel data leakage
+                displaySecureAccountInfo(account);
 
                 // Show tax and transfer information
                 if (account instanceof Taxable) {
@@ -416,8 +435,11 @@ public class Main {
                     switch (transChoice) {
                         case 1:
                             System.out.print("Enter deposit amount: ");
-                            int depositAmount = scanner.nextInt();
-                            scanner.nextLine();
+                            int depositAmount = validateNumericInput(scanner.nextLine(), 1, Integer.MAX_VALUE);
+                            if (depositAmount == -1) {
+                                System.out.println("Invalid deposit amount. Please enter a positive number.");
+                                continue;
+                            }
                             int newBalance = account.deposit(depositAmount);
 
                             // Log transaction
@@ -442,8 +464,11 @@ public class Main {
                             scanner.nextLine();
 
                             System.out.print("Enter withdrawal amount: ");
-                            int withdrawAmount = scanner.nextInt();
-                            scanner.nextLine();
+                            int withdrawAmount = validateNumericInput(scanner.nextLine(), 1, Integer.MAX_VALUE);
+                            if (withdrawAmount == -1) {
+                                System.out.println("Invalid withdrawal amount. Please enter a positive number.");
+                                continue;
+                            }
 
                             int finalBalance = 0;
                             String withdrawMethod = "";
@@ -490,7 +515,7 @@ public class Main {
                             break;
 
                         case 3:
-                            account.display();
+                            displaySecureAccountInfo(account);
                             break;
 
                         case 4:
@@ -532,8 +557,18 @@ public class Main {
                                     continue;
                                 }
                                 System.out.print("Enter transfer amount: ");
-                                double transferAmount = scanner.nextDouble();
-                                scanner.nextLine();
+                                String transferInput = scanner.nextLine();
+                                double transferAmount;
+                                try {
+                                    transferAmount = Double.parseDouble(transferInput.trim());
+                                    if (transferAmount <= 0) {
+                                        System.out.println("Invalid transfer amount. Please enter a positive number.");
+                                        continue;
+                                    }
+                                } catch (NumberFormatException e) {
+                                    System.out.println("Invalid transfer amount format.");
+                                    continue;
+                                }
 
                                 // Create a dummy recipient account for demonstration
                                 Account recipient = new MainAccount(recipientAccNo, "Recipient", 0);
