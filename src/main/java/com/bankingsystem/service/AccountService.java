@@ -14,66 +14,31 @@ public class AccountService {
     }
 
     public Account createMainAccount(String accNo, String name, int amount, String upiId, int creditCard) {
-        Account account;
-
-        if (upiId != null && creditCard != -1) {
-            account = new MainAccount(accNo, name, amount, upiId, creditCard);
-        } else if (upiId != null) {
-            account = new MainAccount(accNo, name, amount, upiId);
-        } else if (creditCard != -1) {
-            account = new MainAccount(accNo, name, amount, creditCard);
-        } else {
-            account = new MainAccount(accNo, name, amount);
-        }
-
+        Account account = MainAccount.createAccount(accNo, name, amount, upiId, creditCard);
         loggingService.logAccountCreation(account, "Main", upiId, creditCard);
         return account;
     }
 
     public Account createSavingsAccount(String parentAccNo, String name, int amount, String upiId, int creditCard) {
-        Account account;
-
-        if (upiId != null && creditCard != -1) {
-            account = new SavingsAccount(parentAccNo, name, amount, upiId, creditCard);
-        } else if (upiId != null) {
-            account = new SavingsAccount(parentAccNo, name, amount, upiId);
-        } else if (creditCard != -1) {
-            account = new SavingsAccount(parentAccNo, name, amount, creditCard);
-        } else {
-            account = new SavingsAccount(parentAccNo, name, amount);
-        }
-
+        Account account = SavingsAccount.createAccount(parentAccNo, name, amount, upiId, creditCard);
         loggingService.logAccountCreation(account, "Savings", upiId, creditCard);
         return account;
     }
 
     public Account createCurrentAccount(String parentAccNo, String name, int amount, String upiId, int creditCard) {
-        Account account;
-
-        if (upiId != null && creditCard != -1) {
-            account = new CurrentAccount(parentAccNo, name, amount, upiId, creditCard);
-        } else if (upiId != null) {
-            account = new CurrentAccount(parentAccNo, name, amount, upiId);
-        } else if (creditCard != -1) {
-            account = new CurrentAccount(parentAccNo, name, amount, creditCard);
-        } else {
-            account = new CurrentAccount(parentAccNo, name, amount, creditCard);
-        }
-
+        Account account = CurrentAccount.createAccount(parentAccNo, name, amount, upiId, creditCard);
         loggingService.logAccountCreation(account, "Current", upiId, creditCard);
         return account;
     }
 
     public void displaySecureAccountInfo(Account account) {
         System.out.println("Account Details:");
-        System.out.println("  Account Number: " + account.acc_no);
+        System.out.println("  Account Number: " + account.getAccountId());
         System.out.println("  Name: " + account.getName());
         System.out.println("  Balance: " + account.getAmount());
-        if (account.upi_id != null) {
-            System.out.println("  UPI ID: " + account.upi_id);
-        }
-        if (account.credit_card_no != -1) {
-            System.out.println("  Credit Card: [SECURED]");
-        }
+        // Note: UPI ID and Credit Card are not accessible from outside the package
+        // This is intentional for security - sensitive data should not be exposed
+        System.out.println("  UPI ID: [SECURED]");
+        System.out.println("  Credit Card: [SECURED]");
     }
 }

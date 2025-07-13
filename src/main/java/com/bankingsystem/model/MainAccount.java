@@ -33,6 +33,19 @@ public class MainAccount extends Account implements Taxable, Transferable {
         System.out.println("Main Account ID: " + this.main_account_id);
     }
 
+    // Factory method for safer instantiation
+    public static MainAccount createAccount(String acc_no, String name, int amount, String upi_id, int credit_card_no) {
+        if (upi_id != null && credit_card_no != -1) {
+            return new MainAccount(acc_no, name, amount, upi_id, credit_card_no);
+        } else if (upi_id != null) {
+            return new MainAccount(acc_no, name, amount, upi_id);
+        } else if (credit_card_no != -1) {
+            return new MainAccount(acc_no, name, amount, credit_card_no);
+        } else {
+            return new MainAccount(acc_no, name, amount);
+        }
+    }
+
     @Override
     protected int getInterestRate() {
         return 0;
