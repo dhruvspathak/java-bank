@@ -32,6 +32,7 @@ interface Transferable {
 public class Main {
     // Encryption key - in production, this should be stored securely and not
     private static final String ENCRYPTION_KEY = "BankSystemSecretKey2024!";
+
     /**
      * @param creditCardNumber The credit card number to encrypt
      * @return Base64 encoded encrypted string, or "Not set" if no card number
@@ -45,32 +46,32 @@ public class Main {
             // Create a secure key from the encryption key using PBKDF2
             javax.crypto.SecretKeyFactory factory = javax.crypto.SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
             javax.crypto.spec.PBEKeySpec spec = new javax.crypto.spec.PBEKeySpec(
-                ENCRYPTION_KEY.toCharArray(), 
-                "BankSystemSalt2024".getBytes(StandardCharsets.UTF_8), 
-                65536, // iterations
-                256 // key length in bits
+                    ENCRYPTION_KEY.toCharArray(),
+                    "BankSystemSalt2024".getBytes(StandardCharsets.UTF_8),
+                    65536, // iterations
+                    256 // key length in bits
             );
             javax.crypto.SecretKey tmp = factory.generateSecret(spec);
             SecretKeySpec secretKey = new SecretKeySpec(tmp.getEncoded(), "AES");
 
-            // Generate a random initialization vector
+            // Generate a random nonce for GCM mode
             SecureRandom random = new SecureRandom();
-            byte[] iv = new byte[16];
-            random.nextBytes(iv);
-            IvParameterSpec ivSpec = new IvParameterSpec(iv);
+            byte[] nonce = new byte[12]; // 96-bit nonce for GCM
+            random.nextBytes(nonce);
+            javax.crypto.spec.GCMParameterSpec gcmSpec = new javax.crypto.spec.GCMParameterSpec(128, nonce);
 
-            // Initialize cipher for encryption with CBC mode
-            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-            cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivSpec);
+            // Initialize cipher for encryption with GCM mode
+            Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey, gcmSpec);
 
             // Encrypt the credit card number
             String cardNumberStr = String.valueOf(creditCardNumber);
             byte[] encryptedBytes = cipher.doFinal(cardNumberStr.getBytes(StandardCharsets.UTF_8));
 
-            // Combine IV and encrypted data for storage
-            byte[] combined = new byte[iv.length + encryptedBytes.length];
-            System.arraycopy(iv, 0, combined, 0, iv.length);
-            System.arraycopy(encryptedBytes, 0, combined, iv.length, encryptedBytes.length);
+            // Combine nonce and encrypted data for storage
+            byte[] combined = new byte[nonce.length + encryptedBytes.length];
+            System.arraycopy(nonce, 0, combined, 0, nonce.length);
+            System.arraycopy(encryptedBytes, 0, combined, nonce.length, encryptedBytes.length);
 
             // Return Base64 encoded encrypted string
             return Base64.getEncoder().encodeToString(combined);
@@ -81,6 +82,7 @@ public class Main {
             return maskCreditCard(creditCardNumber);
         }
     }
+
     /**
      * @param creditCardNumber The credit card number to mask
      * @return Masked credit card string
@@ -93,10 +95,11 @@ public class Main {
         // Secure masking without string manipulation to prevent side-channel leakage
         return "[MASKED]";
     }
-    
+
     /**
      * Validates and sanitizes user input to prevent injection attacks
-     * @param input The user input to validate
+     * 
+     * @param input   The user input to validate
      * @param pattern The regex pattern to validate against
      * @return Sanitized input or null if invalid
      */
@@ -107,12 +110,13 @@ public class Main {
         String sanitized = input.trim();
         return pattern.matcher(sanitized).matches() ? sanitized : null;
     }
-    
+
     /**
      * Validates numeric input to prevent injection attacks
+     * 
      * @param input The numeric input to validate
-     * @param min The minimum allowed value
-     * @param max The maximum allowed value
+     * @param min   The minimum allowed value
+     * @param max   The maximum allowed value
      * @return Validated integer or -1 if invalid
      */
     private static int validateNumericInput(String input, int min, int max) {
@@ -123,9 +127,10 @@ public class Main {
             return -1;
         }
     }
-    
+
     /**
      * Securely reads credit card input to prevent side-channel data leakage
+     * 
      * @param scanner The scanner to read from
      * @return Credit card number or -1 if invalid/not provided
      */
@@ -141,9 +146,10 @@ public class Main {
             return -1;
         }
     }
-    
+
     /**
      * Securely displays account information to prevent side-channel data leakage
+     * 
      * @param account The account to display
      */
     private static void displaySecureAccountInfo(Account account) {
@@ -168,13 +174,13 @@ public class Main {
         Pattern namePattern = Pattern.compile("^[A-Za-z\\s]{2,50}$");
         Pattern upiPattern = Pattern.compile("^[A-Za-z0-9._-]+@[A-Za-z0-9]+$");
         Pattern yesNoPattern = Pattern.compile("^(y|yes|n|no)$");
-        
+
         Scanner scanner = new Scanner(System.in);
 
         // === File I/O ===
         String logPath = System.getProperty("user.dir") + File.separator + "logs.txt";
         File file = new File(logPath).getAbsoluteFile();
-        
+
         // Ensure the file has proper permissions and is secure
         if (!file.exists()) {
             try {
@@ -182,8 +188,8 @@ public class Main {
                 // Set file permissions to owner read/write only (600 equivalent)
                 file.setReadable(false, false); // No read for others
                 file.setWritable(false, false); // No write for others
-                file.setReadable(true, true);   // Owner can read
-                file.setWritable(true, true);   // Owner can write
+                file.setReadable(true, true); // Owner can read
+                file.setWritable(true, true); // Owner can write
             } catch (IOException e) {
                 System.err.println("Error creating log file: " + e.getMessage());
             }
@@ -307,7 +313,8 @@ public class Main {
                     System.out.print("Enter parent account number: ");
                     String parentAccNo = validateInput(scanner.nextLine(), accountNumberPattern);
                     if (parentAccNo == null) {
-                        System.out.println("Invalid parent account number format. Please use 3-20 alphanumeric characters.");
+                        System.out.println(
+                                "Invalid parent account number format. Please use 3-20 alphanumeric characters.");
                         continue;
                     }
                     // Validate size to prevent dangerous file size upload
@@ -571,7 +578,8 @@ public class Main {
                                 System.out.print("Enter recipient account number: ");
                                 String recipientAccNo = validateInput(scanner.nextLine(), accountNumberPattern);
                                 if (recipientAccNo == null) {
-                                    System.out.println("Invalid recipient account number format. Please use 3-20 alphanumeric characters.");
+                                    System.out.println(
+                                            "Invalid recipient account number format. Please use 3-20 alphanumeric characters.");
                                     continue;
                                 }
                                 System.out.print("Enter transfer amount: ");
