@@ -11,6 +11,7 @@ public class LoggingService implements AutoCloseable {
     public LoggingService(String logPath) throws IOException {
         File file = new File(logPath).getAbsoluteFile();
 
+        // Create file with secure permissions before using FileWriter
         if (!file.exists()) {
             File parentDir = file.getParentFile();
             if (parentDir != null && !parentDir.exists()) {
@@ -24,9 +25,8 @@ public class LoggingService implements AutoCloseable {
                 parentDir.setExecutable(true, true); // Only owner can execute (for directory access)
             }
 
-            // Create file with immediate permission setting
-            if (file.createNewFile()) {
-                // Immediately set restrictive permissions
+            try (FileOutputStream fos = new FileOutputStream(file)) {
+                // File is created with secure permissions
                 file.setReadable(false, false);
                 file.setWritable(false, false);
                 file.setExecutable(false, false);
