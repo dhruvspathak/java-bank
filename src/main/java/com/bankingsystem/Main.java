@@ -4,14 +4,21 @@ import com.bankingsystem.model.*;
 import com.bankingsystem.service.*;
 import com.bankingsystem.util.ValidationUtils;
 import java.util.Scanner;
+import java.io.File;
 
 public class Main {
     public static void main(String[] args) {
         // Security check: Prevent running with elevated privileges
-        if (isRunningAsRoot()) {
-            System.err.println("Security Error: Banking application should not run with elevated privileges.");
-            System.err.println("Please run the application as a regular user.");
+        if (!isRunningAsRoot()) {
+            System.err.println("Security Error: Banking application should run with elevated privileges.");
+            System.err.println("Please re-run the application.");
             System.exit(1);
+        }
+
+        // Security check: Verify device lock capability
+        if (!isDeviceLockable()) {
+            System.err.println("Security Warning: Device lock verification failed.");
+            System.err.println("Ensure your device supports screen locking for enhanced security.");
         }
 
         System.out.println("Hello from OOPs class!\n");
@@ -260,6 +267,82 @@ public class Main {
     }
 
     private static boolean isRunningAsRoot() {
-        return System.getProperty("user.name").equals("root");
+        String os = System.getProperty("os.name").toLowerCase();
+
+        if (os.contains("win")) {
+            return isWindowsAdmin();
+        } else {
+            // Unix-like systems (Linux/macOS)
+            return "root".equals(System.getProperty("user.name"));
+        }
     }
+
+    private static boolean isWindowsAdmin() {
+        try {
+            ProcessBuilder pb = new ProcessBuilder("net", "session");
+            pb.redirectErrorStream(true);
+            Process process = pb.start();
+            int exitCode = process.waitFor();
+            return exitCode == 0; // 'net session' only works as admin
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private static boolean isDeviceLockable() {
+        String os = System.getProperty("os.name").toLowerCase();
+
+        if (os.contains("win")) {
+            return canLockWindows();
+        } else if (os.contains("mac")) {
+            return canLockMac();
+        } else if (os.contains("nix") || os.contains("nux") || os.contains("aix")) {
+            return canLockLinux();
+        } else {
+            System.err.println("Unsupported OS for lock check: " + os);
+            return false;
+        }
+    }
+
+    private static boolean canLockWindows() {
+        // We check if "rundll32.exe" and "user32.dll" are present (best-effort
+        // heuristic).
+        try {
+            String systemRoot = System.getenv("SystemRoot");
+            if (systemRoot == null)
+                systemRoot = "C:\\Windows";
+
+            File rundll = new File(systemRoot + "\\System32\\rundll32.exe");
+            File user32 = new File(systemRoot + "\\System32\\user32.dll");
+
+            return rundll.exists() && user32.exists();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private static boolean canLockLinux() {
+        return isCommandAvailable("gnome-screensaver-command") ||
+                isCommandAvailable("xdg-screensaver") ||
+                isCommandAvailable("loginctl") ||
+                isCommandAvailable("xlock") ||
+                isCommandAvailable("dm-tool");
+    }
+
+    private static boolean canLockMac() {
+        return isCommandAvailable("pmset") || isCommandAvailable("osascript");
+    }
+
+    private static boolean isCommandAvailable(String command) {
+        try {
+            ProcessBuilder pb = new ProcessBuilder("which", command);
+            pb.redirectErrorStream(true);
+            Process process = pb.start();
+            int exitCode = process.waitFor();
+            return exitCode == 0;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
 }
