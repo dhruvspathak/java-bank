@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 public class ValidationUtils {
     private static final Pattern ACCOUNT_NUMBER_PATTERN = Pattern.compile("^[A-Za-z0-9]{3,20}$");
     private static final Pattern NAME_PATTERN = Pattern.compile("^[A-Za-z\\s]{2,50}$");
-    private static final Pattern UPI_PATTERN = Pattern.compile("^[A-Za-z0-9._-]+@[A-Za-z0-9]+$");
+    private static final Pattern UPI_PATTERN = Pattern.compile("^[A-Za-z0-9._-]+@[A-Za-z0-9._-]+$");
     private static final Pattern YES_NO_PATTERN = Pattern.compile("^(y|yes|n|no)$");
 
     public static String validateInput(String input, Pattern pattern) {

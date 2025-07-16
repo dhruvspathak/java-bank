@@ -12,13 +12,14 @@ public class TransactionService {
     }
 
     public int processDeposit(Account account, Scanner scanner) {
-        System.out.print("Enter deposit amount: ");
-        int depositAmount = ValidationUtils.validateNumericInput(scanner.nextLine(), 1, Integer.MAX_VALUE);
-        if (depositAmount == -1) {
+        int depositAmount;
+        while (true) {
+            System.out.print("Enter deposit amount: ");
+            String input = scanner.nextLine();
+            depositAmount = ValidationUtils.validateNumericInput(input, 1, Integer.MAX_VALUE);
+            if (depositAmount != -1) break;
             System.out.println("Invalid deposit amount. Please enter a positive number.");
-            return -1;
         }
-
         int newBalance = account.deposit(depositAmount);
         loggingService.logDeposit(account, depositAmount, newBalance);
         return newBalance;
@@ -29,41 +30,49 @@ public class TransactionService {
         System.out.println("1. Simple Withdraw");
         System.out.println("2. Withdraw with UPI");
         System.out.println("3. Withdraw with Credit Card");
-        System.out.print("Enter choice (1-3): ");
-
-        int withdrawChoice = scanner.nextInt();
-        scanner.nextLine();
-
-        System.out.print("Enter withdrawal amount: ");
-        int withdrawAmount = ValidationUtils.validateNumericInput(scanner.nextLine(), 1, Integer.MAX_VALUE);
-        if (withdrawAmount == -1) {
-            System.out.println("Invalid withdrawal amount. Please enter a positive number.");
-            return -1;
+        int withdrawChoice = -1;
+        while (true) {
+            System.out.print("Enter choice (1-3): ");
+            String input = scanner.nextLine();
+            try {
+                withdrawChoice = Integer.parseInt(input.trim());
+                if (withdrawChoice >= 1 && withdrawChoice <= 3) break;
+            } catch (NumberFormatException e) {}
+            System.out.println("Invalid choice! Please enter 1-3.");
         }
-
+        int withdrawAmount;
+        while (true) {
+            System.out.print("Enter withdrawal amount: ");
+            String input = scanner.nextLine();
+            withdrawAmount = ValidationUtils.validateNumericInput(input, 1, Integer.MAX_VALUE);
+            if (withdrawAmount != -1) break;
+            System.out.println("Invalid withdrawal amount. Please enter a positive number.");
+        }
         int finalBalance = 0;
         String withdrawMethod = "";
-
         switch (withdrawChoice) {
             case 1:
                 finalBalance = account.withdraw(withdrawAmount);
                 withdrawMethod = "Simple";
                 break;
             case 2:
-                System.out.print("Enter UPI ID: ");
-                String withdrawUpi = ValidationUtils.validateInput(scanner.nextLine(), ValidationUtils.getUpiPattern());
-                if (withdrawUpi == null) {
+                String withdrawUpi;
+                while (true) {
+                    System.out.print("Enter UPI ID: ");
+                    withdrawUpi = ValidationUtils.validateInput(scanner.nextLine(), ValidationUtils.getUpiPattern());
+                    if (withdrawUpi != null) break;
                     System.out.println("Invalid UPI ID format. Please use format: username@bank");
-                    return -1;
                 }
                 finalBalance = account.withdraw(withdrawUpi, withdrawAmount);
                 withdrawMethod = "UPI";
                 break;
             case 3:
-                System.out.print("Enter credit card number: ");
-                int withdrawCard = ValidationUtils.readSecureCreditCard(scanner);
-                if (withdrawCard == -1) {
-                    return -1;
+                int withdrawCard;
+                while (true) {
+                    System.out.print("Enter credit card number: ");
+                    withdrawCard = ValidationUtils.readSecureCreditCard(scanner);
+                    if (withdrawCard != -1) break;
+                    System.out.println("Invalid credit card number format.");
                 }
                 finalBalance = account.withdraw(withdrawCard, withdrawAmount);
                 withdrawMethod = "Credit Card";
@@ -72,7 +81,6 @@ public class TransactionService {
                 System.out.println("Invalid choice!");
                 return -1;
         }
-
         loggingService.logWithdrawal(account, withdrawAmount, finalBalance, withdrawMethod);
         return finalBalance;
     }
@@ -81,13 +89,13 @@ public class TransactionService {
         if (account instanceof Taxable) {
             Taxable taxableAccount = (Taxable) account;
             double taxAmount = taxableAccount.calculateTax();
-            System.out.println("Tax amount: ₹" + taxAmount);
-            System.out.print("Do you want to pay tax? (y/n): ");
-            String payTax = ValidationUtils.validateInput(scanner.nextLine().toLowerCase(),
-                    ValidationUtils.getYesNoPattern());
-            if (payTax == null) {
+            System.out.println("Tax amount: Rs." + taxAmount);
+            String payTax;
+            while (true) {
+                System.out.print("Do you want to pay tax? (y/n): ");
+                payTax = ValidationUtils.validateInput(scanner.nextLine().toLowerCase(), ValidationUtils.getYesNoPattern());
+                if (payTax != null) break;
                 System.out.println("Invalid input. Please enter 'y', 'yes', 'n', or 'no'.");
-                return false;
             }
             if (payTax.equals("y") || payTax.equals("yes")) {
                 taxableAccount.payTax();
@@ -104,29 +112,24 @@ public class TransactionService {
     public boolean processTransfer(Account account, Scanner scanner) {
         if (account instanceof Transferable) {
             Transferable transferableAccount = (Transferable) account;
-            System.out.print("Enter recipient account number: ");
-            String recipientAccNo = ValidationUtils.validateInput(scanner.nextLine(),
-                    ValidationUtils.getAccountNumberPattern());
-            if (recipientAccNo == null) {
+            String recipientAccNo;
+            while (true) {
+                System.out.print("Enter recipient account number: ");
+                recipientAccNo = ValidationUtils.validateInput(scanner.nextLine(), ValidationUtils.getAccountNumberPattern());
+                if (recipientAccNo != null) break;
                 System.out.println("Invalid recipient account number format. Please use 3-20 alphanumeric characters.");
-                return false;
             }
-            System.out.print("Enter transfer amount: ");
-            String transferInput = scanner.nextLine();
             double transferAmount;
-            try {
-                transferAmount = Double.parseDouble(transferInput.trim());
-                if (transferAmount <= 0) {
-                    System.out.println("Invalid transfer amount. Please enter a positive number.");
-                    return false;
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("Invalid transfer amount format.");
-                return false;
+            while (true) {
+                System.out.print("Enter transfer amount: ");
+                String transferInput = scanner.nextLine();
+                try {
+                    transferAmount = Double.parseDouble(transferInput.trim());
+                    if (transferAmount > 0) break;
+                } catch (NumberFormatException e) {}
+                System.out.println("Invalid transfer amount. Please enter a positive number.");
             }
-
             Account recipient = new MainAccount(recipientAccNo, "Recipient", 0);
-
             boolean transferSuccess = transferableAccount.transfer(recipient, transferAmount);
             if (transferSuccess) {
                 System.out.println("Transfer successful!");
