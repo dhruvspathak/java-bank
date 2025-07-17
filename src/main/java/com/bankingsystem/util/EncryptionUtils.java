@@ -65,10 +65,9 @@ public class EncryptionUtils {
 
             return Base64.getEncoder().encodeToString(combined);
 
-        } catch (Exception e) {
-            // Generic error message to prevent information disclosure
+        } catch (java.security.GeneralSecurityException e) {
+            // Do not leak exception details or stack traces
             System.err.println("Encryption operation failed");
-            // Do not leak exception details
             return maskCreditCard(creditCardNumber);
         }
     }
