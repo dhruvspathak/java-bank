@@ -123,17 +123,13 @@ public class TransactionService {
                 if (recipientAccNo != null) break;
                 System.out.println("Invalid recipient account number format. Please use 3-20 alphanumeric characters.");
             }
-            double transferAmount;
+            int transferAmount;
             while (true) {
                 System.out.print("Enter transfer amount: ");
                 String transferInput = scanner.nextLine();
-                try {
-                    transferAmount = Double.parseDouble(transferInput.trim());
-                    if (transferAmount > 0) break;
-                } catch (NumberFormatException e) {
-                    System.err.println("Invalid transfer amount input.");
-                }
-                System.out.println("Invalid transfer amount. Please enter a positive number.");
+                transferAmount = ValidationUtils.validateNumericInput(transferInput, 1, 1_000_000);
+                if (transferAmount != -1) break;
+                System.out.println("Invalid transfer amount. Please enter a positive number up to 1,000,000.");
             }
             Account recipient = new MainAccount(recipientAccNo, "Recipient", 0);
             boolean transferSuccess = transferableAccount.transfer(recipient, transferAmount);

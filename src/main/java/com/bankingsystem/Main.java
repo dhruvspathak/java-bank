@@ -124,13 +124,9 @@ public class Main {
         while (true) {
             System.out.print("Enter initial balance: ");
             String amtStr = scanner.nextLine();
-            try {
-                amount = Integer.parseInt(amtStr.trim());
-                if (amount >= 0) break;
-            } catch (NumberFormatException e) {
-                System.err.println("Invalid amount input.");
-            }
-            System.out.println("Invalid amount. Please enter a positive number.");
+            amount = ValidationUtils.validateNumericInput(amtStr, 1, 1_000_000);
+            if (amount != -1) break;
+            System.out.println("Invalid amount. Please enter a positive number up to 1,000,000.");
         }
         String upiId = getUpiId(scanner);
         if (upiId == null && askYesNo(scanner, "You chose to add a UPI ID but did not provide a valid one. Do you want to try again? (y/n): ")) {
@@ -162,13 +158,9 @@ public class Main {
         while (true) {
             System.out.print("Enter initial balance: ");
             String amtStr = scanner.nextLine();
-            try {
-                amount = Integer.parseInt(amtStr.trim());
-                if (amount >= 0) break;
-            } catch (NumberFormatException e) {
-                System.err.println("Invalid amount input.");
-            }
-            System.out.println("Invalid amount. Please enter a positive number.");
+            amount = ValidationUtils.validateNumericInput(amtStr, 1, 1_000_000);
+            if (amount != -1) break;
+            System.out.println("Invalid amount. Please enter a positive number up to 1,000,000.");
         }
         String upiId = getUpiId(scanner);
         if (upiId == null && askYesNo(scanner, "You chose to add a UPI ID but did not provide a valid one. Do you want to try again? (y/n): ")) {
