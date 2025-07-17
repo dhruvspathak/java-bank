@@ -17,8 +17,7 @@ public class EncryptionUtils {
             key = System.getProperty("bank.encryption.key");
         }
         if (key == null || key.trim().isEmpty()) {
-            // Fallback for development only - should be set in production
-            key = "BankSystemSecretKey2024!";
+            throw new RuntimeException("Encryption key not set. Please set BANK_ENCRYPTION_KEY environment variable or bank.encryption.key system property.");
         }
         return key;
     }
@@ -29,8 +28,7 @@ public class EncryptionUtils {
             salt = System.getProperty("bank.encryption.salt");
         }
         if (salt == null || salt.trim().isEmpty()) {
-            // Fallback for development only - should be set in production
-            salt = "BankSystemSalt2024";
+            throw new RuntimeException("Encryption salt not set. Please set BANK_ENCRYPTION_SALT environment variable or bank.encryption.salt system property.");
         }
         return salt;
     }
@@ -70,6 +68,7 @@ public class EncryptionUtils {
         } catch (Exception e) {
             // Generic error message to prevent information disclosure
             System.err.println("Encryption operation failed");
+            // Do not leak exception details
             return maskCreditCard(creditCardNumber);
         }
     }

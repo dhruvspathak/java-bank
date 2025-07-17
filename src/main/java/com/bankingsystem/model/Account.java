@@ -54,9 +54,9 @@ public abstract class Account {
             this.amount += amount;
             System.out.println("Deposited: " + amount + ", New balance: " + this.amount);
         } catch (IllegalArgumentException e) {
-            System.out.println("Deposit failed: " + e.getMessage());
+            System.err.println("Deposit failed.");
         } catch (Throwable t) {
-            System.out.println("An unexpected error occurred during deposit");
+            System.err.println("An unexpected error occurred during deposit.");
         }
         return this.amount;
     }
@@ -81,9 +81,9 @@ public abstract class Account {
                 throw new ArithmeticException("Insufficient balance.");
             }
         } catch (IllegalArgumentException | IllegalStateException | SecurityException | ArithmeticException e) {
-            System.out.println("Withdrawal failed: " + e.getMessage());
+            System.err.println("Withdrawal failed.");
         } catch (Throwable t) {
-            System.out.println("An unexpected error occurred during withdrawal");
+            System.err.println("An unexpected error occurred during withdrawal.");
         } finally {
             System.out.println("UPI ID: " + this.upi_id);
         }
@@ -107,9 +107,9 @@ public abstract class Account {
                 throw new ArithmeticException("Insufficient balance.");
             }
         } catch (IllegalArgumentException | ArithmeticException | SecurityException e) {
-            System.out.println("Withdrawal failed: " + e.getMessage());
+            System.err.println("Withdrawal failed.");
         } catch (Throwable t) {
-            System.out.println("An unexpected error occurred during withdrawal");
+            System.err.println("An unexpected error occurred during withdrawal.");
         } finally {
             System.out.println("Credit card number: [ENCRYPTED]");
         }
@@ -128,9 +128,9 @@ public abstract class Account {
                 throw new ArithmeticException("Insufficient balance.");
             }
         } catch (IllegalArgumentException | ArithmeticException e) {
-            System.out.println("Withdrawal failed: " + e.getMessage());
+            System.err.println("Withdrawal failed.");
         } catch (Throwable t) {
-            System.out.println("An unexpected error occurred during withdrawal");
+            System.err.println("An unexpected error occurred during withdrawal.");
         }
         return this.amount;
     }

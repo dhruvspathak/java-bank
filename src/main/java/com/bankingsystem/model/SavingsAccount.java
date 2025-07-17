@@ -106,9 +106,9 @@ public class SavingsAccount extends Account implements Taxable {
             this.amount += amount;
             System.out.println("Deposited: " + amount + ", New balance: " + this.amount);
         } catch (IllegalArgumentException e) {
-            System.out.println("Deposit failed: " + e.getMessage());
+            System.err.println("Deposit failed.");
         } catch (Throwable t) {
-            System.out.println("An unexpected error occurred during deposit");
+            System.err.println("An unexpected error occurred during deposit.");
         }
         return this.amount;
     }
@@ -126,9 +126,9 @@ public class SavingsAccount extends Account implements Taxable {
                 throw new ArithmeticException("Insufficient balance.");
             }
         } catch (IllegalArgumentException | ArithmeticException e) {
-            System.out.println("Withdrawal failed: " + e.getMessage());
+            System.err.println("Withdrawal failed.");
         } catch (Throwable t) {
-            System.out.println("An unexpected error occurred during withdrawal");
+            System.err.println("An unexpected error occurred during withdrawal.");
         }
         return this.amount;
     }
