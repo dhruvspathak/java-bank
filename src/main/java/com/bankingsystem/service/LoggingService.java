@@ -55,7 +55,12 @@ public class LoggingService implements AutoCloseable {
     }
 
     private boolean isLogFileSizeSafe(File file) {
-        return file.length() < MAX_LOG_FILE_SIZE;
+        try {
+            return file.length() < MAX_LOG_FILE_SIZE;
+        } catch (SecurityException e) {
+            System.err.println("Unable to check log file size due to security restrictions.");
+            return false; // Treat as unsafe if we can't check
+        }
     }
 
     public void logAccountCreation(Account account, String accountType, String upiId, int creditCard) {

@@ -36,10 +36,12 @@ public class Main {
             logPath = "bank_logs_" + System.currentTimeMillis() + ".txt";
         }
 
-        try (LoggingService loggingService = new LoggingService(logPath)) {
+        try (
+            LoggingService loggingService = new LoggingService(logPath);
+            Scanner scanner = new Scanner(System.in)
+        ) {
             AccountService accountService = new AccountService(loggingService);
             TransactionService transactionService = new TransactionService(loggingService);
-            Scanner scanner = new Scanner(System.in);
 
             System.out.println("=== Banking Account Management System ===\n");
 
