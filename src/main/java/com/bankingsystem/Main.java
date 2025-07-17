@@ -13,7 +13,7 @@ public class Main {
         if (!isRunningAsRoot()) {
             System.err.println("Security Error: Banking application should run with elevated privileges.");
             System.err.println("Please re-run the application.");
-            System.exit(1);
+            return;
         }
 
         // Security check: Verify device lock capability
@@ -32,7 +32,7 @@ public class Main {
             }
             logPath = tempDir + java.io.File.separator + "bank_logs_" + System.currentTimeMillis() + ".txt";
         } catch (SecurityException e) {
-            System.err.println("Access denied to system properties: " + e.getMessage());
+            System.err.println("Access denied to system properties.");
             logPath = "bank_logs_" + System.currentTimeMillis() + ".txt";
         }
 
@@ -56,7 +56,9 @@ public class Main {
                     try {
                         choice = Integer.parseInt(input.trim());
                         if (choice >= 1 && choice <= 4) break;
-                    } catch (NumberFormatException e) {}
+                    } catch (NumberFormatException e) {
+                        System.err.println("Invalid menu input.");
+                    }
                     System.out.print("Invalid choice! Please enter 1-4: ");
                 }
 
@@ -97,7 +99,7 @@ public class Main {
             }
 
         } catch (Exception e) {
-            System.err.println("Error initializing banking system: " + e.getMessage());
+            System.err.println("Error initializing banking system.");
         }
     }
 
@@ -123,7 +125,9 @@ public class Main {
             try {
                 amount = Integer.parseInt(amtStr.trim());
                 if (amount >= 0) break;
-            } catch (NumberFormatException e) {}
+            } catch (NumberFormatException e) {
+                System.err.println("Invalid amount input.");
+            }
             System.out.println("Invalid amount. Please enter a positive number.");
         }
         String upiId = getUpiId(scanner);
@@ -159,7 +163,9 @@ public class Main {
             try {
                 amount = Integer.parseInt(amtStr.trim());
                 if (amount >= 0) break;
-            } catch (NumberFormatException e) {}
+            } catch (NumberFormatException e) {
+                System.err.println("Invalid amount input.");
+            }
             System.out.println("Invalid amount. Please enter a positive number.");
         }
         String upiId = getUpiId(scanner);
@@ -268,7 +274,9 @@ public class Main {
                 try {
                     transChoice = Integer.parseInt(input.trim());
                     if (transChoice >= 1 && transChoice <= 6) break;
-                } catch (NumberFormatException e) {}
+                } catch (NumberFormatException e) {
+                    System.err.println("Invalid transaction menu input.");
+                }
                 System.out.print("Invalid choice! Please enter 1-6: ");
             }
 

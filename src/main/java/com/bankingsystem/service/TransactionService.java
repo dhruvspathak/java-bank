@@ -38,7 +38,9 @@ public class TransactionService {
             try {
                 withdrawChoice = Integer.parseInt(input.trim());
                 if (withdrawChoice >= 1 && withdrawChoice <= 3) break;
-            } catch (NumberFormatException e) {}
+            } catch (NumberFormatException e) {
+                System.err.println("Invalid withdrawal menu input.");
+            }
             System.out.println("Invalid choice! Please enter 1-3.");
         }
         int withdrawAmount;
@@ -128,7 +130,9 @@ public class TransactionService {
                 try {
                     transferAmount = Double.parseDouble(transferInput.trim());
                     if (transferAmount > 0) break;
-                } catch (NumberFormatException e) {}
+                } catch (NumberFormatException e) {
+                    System.err.println("Invalid transfer amount input.");
+                }
                 System.out.println("Invalid transfer amount. Please enter a positive number.");
             }
             Account recipient = new MainAccount(recipientAccNo, "Recipient", 0);
