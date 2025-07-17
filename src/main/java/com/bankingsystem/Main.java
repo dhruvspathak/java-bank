@@ -5,6 +5,7 @@ import com.bankingsystem.service.*;
 import com.bankingsystem.util.ValidationUtils;
 import java.util.Scanner;
 import java.io.File;
+import java.util.Locale;
 
 public class Main {
     public static void main(String[] args) {
@@ -181,7 +182,7 @@ public class Main {
     private static String getUpiId(Scanner scanner) {
         while (true) {
             System.out.print("Do you want to add UPI ID? (y/n): ");
-            String addUpi = ValidationUtils.validateInput(scanner.nextLine().toLowerCase(), ValidationUtils.getYesNoPattern());
+            String addUpi = ValidationUtils.validateInput(scanner.nextLine().toLowerCase(Locale.ROOT), ValidationUtils.getYesNoPattern());
             if (addUpi == null) {
                 System.out.println("Invalid input. Please enter 'y', 'yes', 'n', or 'no'.");
                 continue;
@@ -202,7 +203,7 @@ public class Main {
     private static int getCreditCard(Scanner scanner) {
         while (true) {
             System.out.print("Do you want to add credit card? (y/n): ");
-            String addCard = ValidationUtils.validateInput(scanner.nextLine().toLowerCase(), ValidationUtils.getYesNoPattern());
+            String addCard = ValidationUtils.validateInput(scanner.nextLine().toLowerCase(Locale.ROOT), ValidationUtils.getYesNoPattern());
             if (addCard == null) {
                 System.out.println("Invalid input. Please enter 'y', 'yes', 'n', or 'no'.");
                 continue;
@@ -223,7 +224,7 @@ public class Main {
     private static boolean askYesNo(Scanner scanner, String prompt) {
         while (true) {
             System.out.print(prompt);
-            String input = ValidationUtils.validateInput(scanner.nextLine().toLowerCase(), ValidationUtils.getYesNoPattern());
+            String input = ValidationUtils.validateInput(scanner.nextLine().toLowerCase(Locale.ROOT), ValidationUtils.getYesNoPattern());
             if (input == null) {
                 System.out.println("Invalid input. Please enter 'y', 'yes', 'n', or 'no'.");
                 continue;
@@ -301,7 +302,7 @@ public class Main {
     }
 
     private static boolean isRunningAsRoot() {
-        String os = System.getProperty("os.name").toLowerCase();
+        String os = System.getProperty("os.name").toLowerCase(Locale.ROOT);
 
         if (os.contains("win")) {
             return isWindowsAdmin();
@@ -324,7 +325,7 @@ public class Main {
     }
 
     private static boolean isDeviceLockable() {
-        String os = System.getProperty("os.name").toLowerCase();
+        String os = System.getProperty("os.name").toLowerCase(Locale.ROOT);
 
         if (os.contains("win")) {
             return canLockWindows();

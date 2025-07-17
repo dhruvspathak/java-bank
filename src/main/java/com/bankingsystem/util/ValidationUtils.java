@@ -22,6 +22,7 @@ public class ValidationUtils {
             int value = Integer.parseInt(input.trim());
             return (value >= min && value <= max) ? value : -1;
         } catch (NumberFormatException e) {
+            System.err.println("Invalid numeric input.");
             return -1;
         }
     }
@@ -33,7 +34,7 @@ public class ValidationUtils {
             input = null;
             return cardNumber;
         } catch (NumberFormatException e) {
-            System.out.println("Invalid credit card number format.");
+            System.err.println("Invalid credit card number format.");
             return -1;
         }
     }

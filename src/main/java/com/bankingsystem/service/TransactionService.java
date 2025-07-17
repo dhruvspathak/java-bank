@@ -3,6 +3,7 @@ package com.bankingsystem.service;
 import com.bankingsystem.model.*;
 import com.bankingsystem.util.ValidationUtils;
 import java.util.Scanner;
+import java.util.Locale;
 
 public class TransactionService {
     private final LoggingService loggingService;
@@ -93,7 +94,8 @@ public class TransactionService {
             String payTax;
             while (true) {
                 System.out.print("Do you want to pay tax? (y/n): ");
-                payTax = ValidationUtils.validateInput(scanner.nextLine().toLowerCase(), ValidationUtils.getYesNoPattern());
+                payTax = ValidationUtils.validateInput(scanner.nextLine().toLowerCase(Locale.ROOT),
+                        ValidationUtils.getYesNoPattern());
                 if (payTax != null) break;
                 System.out.println("Invalid input. Please enter 'y', 'yes', 'n', or 'no'.");
             }
