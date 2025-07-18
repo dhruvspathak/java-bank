@@ -20,12 +20,16 @@ public class LoggingService implements AutoCloseable {
                 // Set restrictive directory permissions
                 // NOTE: Java's setReadable/setWritable/setExecutable are best-effort and not secure on Windows.
                 // For Unix systems, consider using java.nio.file.Files.setPosixFilePermissions for strict security.
-                parentDir.setReadable(false, false);
-                parentDir.setWritable(false, false);
-                parentDir.setExecutable(false, false);
-                parentDir.setReadable(true, true);   // Only owner can read
-                parentDir.setWritable(true, true);   // Only owner can write
-                parentDir.setExecutable(true, true); // Only owner can execute (for directory access)
+                try {
+                    parentDir.setReadable(false, false);
+                    parentDir.setWritable(false, false);
+                    parentDir.setExecutable(false, false);
+                    parentDir.setReadable(true, true);   // Only owner can read
+                    parentDir.setWritable(true, true);   // Only owner can write
+                    parentDir.setExecutable(true, true); // Only owner can execute (for directory access)
+                } catch (SecurityException e) {
+                    System.err.println("Unable to set directory permissions due to security restrictions.");
+                }
             }
 
             try (FileOutputStream fos = new FileOutputStream(file)) {
