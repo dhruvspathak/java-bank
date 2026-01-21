@@ -7,7 +7,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 public class EncryptionUtils {
-    // Use environment variable for encryption key, fallback to system property
     private static final String ENCRYPTION_KEY = getEncryptionKey();
     private static final String SALT = getSalt();
 
